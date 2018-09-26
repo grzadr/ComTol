@@ -99,5 +99,6 @@ inline umap_str vec_str_map(const vec_str &keys, const vec_str &values) {
     throw runtime_error("Duplicated keys in vector with keys");
 
   return result;
-} // namespace Basic 
+}
+} // namespace Basic
 } // namespace AGizmos
