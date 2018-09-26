@@ -1,4 +1,57 @@
-#include "evaltools.h"
+#include "evaluation.h"
+#include "basic.h"
+
+#include <iostream>
+#include <sstream>
+
+using sstream = std::stringstream;
+
+using std::cout;
+using std::endl;
+
+using namespace AGizmo;
+using Evaluation::Stats;
+using Evaluation::passed_str;
+using Evaluation::failed_str;
+
+using pair_bool = pair<bool, bool>;
+
+Stats check_XOR(bool verbose = false){
+  Stats result;
+
+  cout << "~~~ Checking XOR function\n";
+
+  sstream message;
+
+  message << "\n";
+
+  vector<pair<pair_bool, bool>> test_set {
+    {{false, false}, false},
+    {{true, false}, true},
+    {{false, true}, true},
+    {{true, true}, false},};
+
+  for (const auto& [input, output] : test_set){
+    ++result;
+    const auto& outcome = Basic::XOR(input.first, input.second);
+    const auto& passed = outcome == output;
+    message << "XOR(" << std::boolalpha << input.first << ", "
+    << std::boolalpha << input.second << ") -> "
+    << outcome << (passed ? " == " : " != ") << output << " "
+    << (passed ? passed_str : failed_str) << "\n";
+
+    if (!passed)
+      result.add_fail();
+  }
+
+  if (result.has_failed() || verbose)
+    cout << message.str() << endl;
+
+
+
+
+
+}
 
 // using namespace General;
 // using namespace EvalComTol;

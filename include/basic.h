@@ -1,4 +1,12 @@
-namespace AGizmos {
+#pragma once
+
+#include <vector>
+
+using std::string;
+using std::pair;
+
+
+namespace AGizmo {
 
 namespace Basic {
 

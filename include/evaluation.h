@@ -27,7 +27,7 @@ using sstream = std::stringstream;
 using pair_int = pair<int, int>;
 using pair_str = pair<string, string>;
 
-namespace EvalTools {
+namespace Evaluation {
 
 struct Stats {
   int total{0}, failed{0};
@@ -52,26 +52,25 @@ struct Stats {
     failed += input.failed;
   }
 
+  int size() { return this->total; }
+
+  explicit operator int() { return this->failed; }
+
+  bool has_failed() { return this->failed != 0; }
+
   void add_fail(int f = 1) { failed += f; }
 
   pair_int get() const { return {total, failed}; }
 
-  double get_ratio() const { return failed / total; }
+  double get_ratio() const { return failed / static_cast<double>(total); }
 
 //   friend std::ostream &operator<<(ostream &stream, const Stats &stats) {
 //     return stream << stats.total;
 //   }
 };
 
-inline bool update_stats(const pair<int, int> &result, int &total,
-                         int &failed) {
-  total += result.first;
-  failed += result.second;
-  return failed;
-}
-
-const string passed_str("[ PASSED ]");
-const string failed_str("[~FAILED~]");
+inline const string passed_str{"[ PASSED ]"};
+inline const string failed_str{"[~FAILED~]"};
 
 inline string gen_framed(const string &message, size_t width = 80, char frame = '#'){
 
