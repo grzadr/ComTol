@@ -1,10 +1,11 @@
 #pragma once
 
 #include <vector>
+#include <stdexcept>
 
-using std::string;
 using std::pair;
-
+using std::vector;
+using std::runtime_error;
 
 namespace AGizmo {
 
@@ -36,7 +37,7 @@ inline OutIt constexpr split(InIt query, const InIt &query_end, Sep sep,
   return output;
 }
 
-template <typename OutType, template <class It> class Comp, typename InIt,
+template <typename OutType, template <class> class Comp, typename InIt,
           typename OutIt, typename SepIt>
 inline OutIt constexpr split(InIt query, const InIt &query_end, SepIt sep,
                              SepIt sep_end, OutIt output) {
@@ -93,20 +94,5 @@ OutIt constexpr mapify(KeytIt kbegin, KeytIt kend, ValueIt vbegin, ValueIt vend,
   return output;
 }
 
-inline umap_str vec_str_map(const vec_str &keys, const vec_str &values) {
-  if (!keys.size() || keys.size() != values.size())
-    throw runtime_error(
-        "Invalid lengths of vectors: " + to_string(keys.size()) + " and " +
-        to_string(values.size()));
-  umap_str result{};
-
-  mapify(keys.begin(), keys.end(), values.begin(), values.end(),
-         inserter(result, result.begin()));
-
-  if (result.size() != keys.size())
-    throw runtime_error("Duplicated keys in vector with keys");
-
-  return result;
-}
 } // namespace Basic
 } // namespace AGizmos

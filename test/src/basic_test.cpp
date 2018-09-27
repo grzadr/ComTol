@@ -47,9 +47,7 @@ Stats check_XOR(bool verbose = false){
   if (result.has_failed() || verbose)
     cout << message.str() << endl;
 
-
-
-
+  return result;
 
 }
 
@@ -609,10 +607,15 @@ Stats check_XOR(bool verbose = false){
 //   return {total, failed};
 // }
 
-using namespace EvalTools;
+int perform_tests(bool verbose){
+  Stats result;
+
+  result(check_XOR(verbose));
+
+  return result.failed;
+}
 
 int main (){
-  gen_summary(10, 1);
-//   cout << "TEST" << endl;
-  return 0;
+
+  return perform_tests(true);
 }

@@ -351,6 +351,21 @@ vec_str str_chunks(const string &source, Ite begin, Ite end) {
     return result;
 }
 
+inline umap_str vec_str_map(const vec_str &keys, const vec_str &values) {
+  if (!keys.size() || keys.size() != values.size())
+    throw runtime_error(
+            "Invalid lengths of vectors: " + to_string(keys.size()) + " and " +
+            to_string(values.size()));
+  umap_str result{};
+
+  mapify(keys.begin(), keys.end(), values.begin(), values.end(),
+         inserter(result, result.begin()));
+
+  if (result.size() != keys.size())
+    throw runtime_error("Duplicated keys in vector with keys");
+
+  return result;
+
 inline umap_str str_map(const string &source, const vec_str &header,
                         bool clean = true, const string &sep = "\t") {
     if (!source.size())
