@@ -1,5 +1,7 @@
 #include "evaluation.h"
 #include "basic.h"
+#include "strings.h"
+
 
 #include <iostream>
 #include <sstream>
@@ -13,6 +15,8 @@ using namespace AGizmo;
 using Evaluation::Stats;
 using Evaluation::passed_str;
 using Evaluation::failed_str;
+
+using StringFormat::str_frame;
 
 using pair_bool = pair<bool, bool>;
 

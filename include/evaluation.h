@@ -8,6 +8,8 @@
 #include <tuple>
 #include <vector>
 
+#include "strings.h"
+
 using namespace std::string_literals;
 // using namespace HKL;
 // using namespace ComTol;
@@ -26,42 +28,46 @@ using sstream = std::stringstream;
 using pair_int = pair<int, int>;
 using pair_str = pair<string, string>;
 
+namespace AGizmo {
+
+using StringFormat::str_frame;
+
 namespace Evaluation {
 
 struct Stats {
-  int total{0}, failed{0};
+    int total{0}, failed{0};
 
-  Stats &operator++() {
-    ++total;
-    return *this;
-  }
+    Stats &operator++() {
+      ++total;
+      return *this;
+    }
 
-  void operator()(const pair_int &stats) {
-    total += stats.first;
-    failed += stats.second;
-  }
+    void operator()(const pair_int &stats) {
+      total += stats.first;
+      failed += stats.second;
+    }
 
-  void operator()(int t, int f) {
-    total += t;
-    failed += f;
-  }
+    void operator()(int t, int f) {
+      total += t;
+      failed += f;
+    }
 
-  void operator()(const Stats &input) {
-    total += input.total;
-    failed += input.failed;
-  }
+    void operator()(const Stats &input) {
+      total += input.total;
+      failed += input.failed;
+    }
 
-  int size() { return this->total; }
+    int size() { return this->total; }
 
-  explicit operator int() { return this->failed; }
+    explicit operator int() { return this->failed; }
 
-  bool has_failed() { return this->failed != 0; }
+    bool has_failed() { return this->failed != 0; }
 
-  void add_fail(int f = 1) { failed += f; }
+    void add_fail(int f = 1) { failed += f; }
 
-  pair_int get() const { return {total, failed}; }
+    pair_int get() const { return {total, failed}; }
 
-  double get_ratio() const { return failed / static_cast<double>(total); }
+    double get_ratio() const { return failed / static_cast<double>(total); }
 
 //   friend std::ostream &operator<<(ostream &stream, const Stats &stats) {
 //     return stream << stats.total;
@@ -71,7 +77,8 @@ struct Stats {
 inline const string passed_str{"[ PASSED ]"};
 inline const string failed_str{"[~FAILED~]"};
 
-inline string gen_framed(const string &message, size_t width = 80, char frame = '#'){
+inline string
+gen_framed(const string &message, size_t width = 80, char frame = '#') {
 
   string result{string(width, frame) + "\n"};
   string frame_string = string(3, frame);
@@ -81,7 +88,7 @@ inline string gen_framed(const string &message, size_t width = 80, char frame = 
   return result + "\n" + string(width, frame);
 }
 
-inline string gen_pretty(const string &message, size_t width = 80){
+inline string gen_pretty(const string &message, size_t width = 80) {
   if (width % 2)
     ++width;
 
@@ -92,8 +99,7 @@ inline string gen_pretty(const string &message, size_t width = 80){
   return result + "\n" + frame;
 }
 
-inline string gen_summary(int total, int failed, string type = "Evaluation")
-{
+inline string gen_summary(int total, int failed, string type = "Evaluation") {
   sstream message;
 
   message << type;
@@ -120,5 +126,8 @@ inline string gen_summary(const Stats &stats, string type = "Evaluation") {
 
   return message.str();
 }
+
 int perform_tests(bool verbose = false);
-} // namespace EvalTools
+} // namespace Evaluation
+
+} //namespace AGizmo
