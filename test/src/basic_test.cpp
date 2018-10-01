@@ -12,22 +12,46 @@ using std::cout;
 using std::endl;
 
 using namespace AGizmo;
-using Evaluation::Stats;
-using Evaluation::passed_str;
-using Evaluation::failed_str;
+using namespace Evaluation;
+//using Evaluation::Stats;
+//using Evaluation::passed_str;
+//using Evaluation::failed_str;
 
 using StringFormat::str_frame;
 
 using pair_bool = pair<bool, bool>;
+using pair_char = pair<char, char>;
+
+template <typename It>
+Stats test_XOR(It begin, It end, sstream &message){
+  Stats result;
+
+  for (; begin != end; ++begin) {
+    const auto [input, expected] = *begin;
+    const auto outcome = Basic::XOR(input.first, input.second);
+    const auto passed = outcome == expected;
+
+    message << ++result << ") XOR(" << std::boolalpha << input.first << ", "
+    << std::boolalpha << input.second << ") -> ";
+
+    result.addFailure(!passed);
+
+    if (passed)
+      message << outcome << " == " << expected << " " << passed_str << "\n";
+    else
+      message << outcome << " != " << expected << " " << failed_str << "\n";
+  }
+
+  message << "\n";
+
+  return result;
+}
 
 Stats check_XOR(bool verbose = false){
   Stats result;
-
-  cout << "~~~ Checking XOR function\n";
-
   sstream message;
 
-  message << "\n";
+  message << "~~~ Checking Basic::XOR\n\nBoolean Test:\n";
 
   vector<pair<pair_bool, bool>> test_set {
     {{false, false}, false},
@@ -35,29 +59,41 @@ Stats check_XOR(bool verbose = false){
     {{false, true}, true},
     {{true, true}, false},};
 
-  for (const auto& [input, output] : test_set){
-    ++result;
-    const auto& outcome = Basic::XOR(input.first, input.second);
-    const auto& passed = outcome == output;
-    message << "XOR(" << std::boolalpha << input.first << ", "
-    << std::boolalpha << input.second << ") -> "
-    << outcome << (passed ? " == " : " != ") << output << " "
-    << (passed ? passed_str : failed_str) << "\n";
+  result.update(test_XOR(test_set.begin(), test_set.end(), message));
 
-    if (!passed)
-      result.add_fail();
-  }
+  vector<pair<pair_char, bool>> test_set_char {
+          {{0, 0}, false},
+          {{0, '+'}, true},
+          {{'+', 0}, true},
+          {{'+', '+'}, false},};
 
-  if (result.has_failed() || verbose)
-    cout << message.str() << endl;
+  message << "Char Test:\n";
+  result.update(test_XOR(test_set_char.begin(), test_set_char.end(), message));
+
+  if (result.hasFailed() || verbose)
+    cout << message.str();
+
+  cout << "~~~ " << gen_summary(result, "Checking Basic::XOR") << endl;
 
   return result;
 
 }
 
-// using namespace General;
-// using namespace EvalComTol;
-// 
+Stats check_split(bool verbose = false){
+  Stats result;
+  sstream message;
+
+  message << "~~~ Checking Basic::split\n\nInteger Test:\n";
+
+  if (result.hasFailed() || verbose)
+    cout << message.str();
+
+  cout << "~~~ " << gen_summary(result, "Checking Basic::split function")
+       << "\n" << endl;
+
+  return result;
+}
+
 // pair_int check_str_join_fields(bool verbose = false) {
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking str_replace function" << endl;
@@ -527,33 +563,7 @@ Stats check_XOR(bool verbose = false){
 //   return {total, failed};
 // }
 // 
-// pair_int check_XOR(bool verbose = false) {
-//   int total = 0, failed = 0;
-//   cout << "~~~ Checking XOR function" << endl;
-// 
-//   sstream message;
-// 
-//   const map<pair<bool, bool>, bool> input_bool{{{false, false}, false},
-//                                                {{false, true}, true},
-//                                                {{true, false}, true},
-//                                                {{true, true}, false}};
-// 
-//   update_stats(test_XOR(input_bool.begin(), input_bool.end(), message), total,
-//                failed);
-// 
-//   const map<pair<char, char>, bool> input_char{
-//       {{0, 0}, false}, {{0, '+'}, true}, {{'+', 0}, true}, {{'+', '+'}, false}};
-// 
-//   update_stats(test_XOR(input_char.begin(), input_char.end(), message), total,
-//                failed);
-// 
-//   if (failed or verbose)
-//     cout << message.str();
-// 
-//   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-// 
-//   return {total, failed};
-// }
+
 // 
 // pair_int check_open_file(bool verbose = false) {
 //   int total = 0, failed = 0;
@@ -595,7 +605,6 @@ Stats check_XOR(bool verbose = false){
 // pair_int EvalComTol::eval_comtol(bool verbose) {
 //   int total = 0, failed = 0;
 //   cout << gen_framed("Evaluating Common Tools") << "\n\n";
-//   update_stats(check_XOR(verbose), total, failed);
 //   update_stats(check_split(verbose), total, failed);
 //   update_stats(check_pairify(verbose), total, failed);
 //   update_stats(check_only_digits(verbose), total, failed);
@@ -612,11 +621,23 @@ Stats check_XOR(bool verbose = false){
 // }
 
 int perform_tests(bool verbose){
+
   Stats result;
 
-  result(check_XOR(verbose));
+  for (int i = 0; i < 2; ++i){
+    bool verbose = i;
+    Stats result;
 
-  return result.failed;
+    cout << gen_framed("Evaluating Common Tools") << "\n\n";
+
+    result(check_XOR(verbose));
+    result(check_split(verbose));
+
+    cout << gen_summary(result, "Evaluation", true) << "\n";
+
+  }
+
+  return result.getFailed();
 }
 
 int main (){
