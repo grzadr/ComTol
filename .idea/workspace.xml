@@ -5,30 +5,30 @@
       <config projectName="pyAGizmo" targetName="ContinuousCoverage" />
       <config projectName="pyAGizmo" targetName="Experimental" />
       <config projectName="pyAGizmo" targetName="ExperimentalTest" />
-      <config projectName="pyAGizmo" targetName="ContinuousUpdate" />
+      <config projectName="pyAGizmo" targetName="ContinuousTest" />
       <config projectName="pyAGizmo" targetName="ExperimentalSubmit" />
       <config projectName="pyAGizmo" targetName="NightlyBuild" />
-      <config projectName="pyAGizmo" targetName="BasicTest" />
+      <config projectName="pyAGizmo" targetName="NightlyCoverage" />
       <config projectName="pyAGizmo" targetName="NightlyUpdate" />
       <config projectName="pyAGizmo" targetName="ExperimentalConfigure" />
       <config projectName="pyAGizmo" targetName="ContinuousBuild" />
       <config projectName="pyAGizmo" targetName="NightlyMemoryCheck" />
       <config projectName="pyAGizmo" targetName="ContinuousSubmit" />
-      <config projectName="pyAGizmo" targetName="NightlySubmit" />
       <config projectName="pyAGizmo" targetName="ExperimentalMemCheck" />
       <config projectName="pyAGizmo" targetName="NightlyTest" />
-      <config projectName="pyAGizmo" targetName="NightlyConfigure" />
-      <config projectName="pyAGizmo" targetName="NightlyMemCheck" />
+      <config projectName="pyAGizmo" targetName="NightlySubmit" />
       <config projectName="pyAGizmo" targetName="ExperimentalBuild" />
+      <config projectName="pyAGizmo" targetName="NightlyMemCheck" />
+      <config projectName="pyAGizmo" targetName="BasicTest" />
       <config projectName="pyAGizmo" targetName="ContinuousMemCheck" />
+      <config projectName="pyAGizmo" targetName="ContinuousUpdate" />
       <config projectName="pyAGizmo" targetName="NightlyStart" />
       <config projectName="pyAGizmo" targetName="ContinuousConfigure" />
       <config projectName="pyAGizmo" targetName="Nightly" />
-      <config projectName="pyAGizmo" targetName="ContinuousTest" />
+      <config projectName="pyAGizmo" targetName="NightlyConfigure" />
       <config projectName="pyAGizmo" targetName="pyAGizmo" />
       <config projectName="pyAGizmo" targetName="ContinuousStart" />
       <config projectName="pyAGizmo" targetName="ExperimentalCoverage" />
-      <config projectName="pyAGizmo" targetName="NightlyCoverage" />
       <config projectName="pyAGizmo" targetName="ExperimentalUpdate" />
       <config projectName="pyAGizmo" targetName="Continuous" />
       <config projectName="pyAGizmo" targetName="ExperimentalStart" />
@@ -41,13 +41,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d2858eb2-6966-4886-beb2-bcd7d36e0947" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/evaluation.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/evaluation.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pybind11/docs/advanced/cast/custom.rst" beforeDir="false" afterPath="$PROJECT_DIR$/pybind11/docs/advanced/cast/custom.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pybind11/docs/advanced/classes.rst" beforeDir="false" afterPath="$PROJECT_DIR$/pybind11/docs/advanced/classes.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pybind11/include/pybind11/cast.h" beforeDir="false" afterPath="$PROJECT_DIR$/pybind11/include/pybind11/cast.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pybind11/include/pybind11/detail/class.h" beforeDir="false" afterPath="$PROJECT_DIR$/pybind11/include/pybind11/detail/class.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pybind11/include/pybind11/detail/common.h" beforeDir="false" afterPath="$PROJECT_DIR$/pybind11/include/pybind11/detail/common.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/strings.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/strings.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/src/basic_test.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/test/src/basic_test.cpp" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
@@ -114,27 +109,35 @@
     <session id="-1058026999">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="5" />
-          <entry key="project.open.time.5" value="2" />
+          <entry key="project.closed" value="6" />
+          <entry key="project.open.time.5" value="3" />
           <entry key="project.open.time.6" value="3" />
-          <entry key="project.opened" value="5" />
+          <entry key="project.opened" value="6" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="cpp" value="1223" />
-          <entry key="h" value="1037" />
+          <entry key="cpp" value="3434" />
+          <entry key="h" value="1983" />
           <entry key="txt" value="70" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="CMakeLists.txt" value="70" />
-          <entry key="ObjectiveC" value="2260" />
+          <entry key="ObjectiveC" value="5417" />
         </counts>
       </usages-collector>
-      <usages-collector id="statistics.file.extensions.open" />
-      <usages-collector id="statistics.file.types.open" />
+      <usages-collector id="statistics.file.extensions.open">
+        <counts>
+          <entry key="BasicTest (disassembly)" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.open">
+        <counts>
+          <entry key="Disassembly" value="1" />
+        </counts>
+      </usages-collector>
       <usages-collector id="statistics.cidr.testingFrameworks.usages" />
       <usages-collector id="statistics.vcs.git.usages" />
     </session>
@@ -146,7 +149,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="555">
+                <state relative-caret-position="495">
                   <caret line="37" column="24" selection-start-line="37" selection-start-column="24" selection-end-line="37" selection-end-column="24" />
                 </state>
               </provider>
@@ -155,10 +158,11 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/include/strings.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="171">
-                  <caret line="215" column="26" selection-start-line="215" selection-start-column="17" selection-end-line="215" selection-end-column="26" />
+                <state relative-caret-position="-945">
+                  <caret line="21" column="31" selection-start-line="21" selection-start-column="31" selection-end-line="21" selection-end-column="31" />
                   <folding>
                     <element signature="e#14#35#0" expanded="true" />
+                    <element signature="e#6447#6460#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
@@ -167,13 +171,14 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/include/basic.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="105">
+                <state relative-caret-position="60">
                   <caret line="7" column="25" selection-start-line="7" selection-start-column="25" selection-end-line="7" selection-end-column="25" />
                   <folding>
                     <element signature="e#14#31#0" expanded="true" />
                     <element signature="e#268#280#0" expanded="true" />
                     <element signature="e#639#702#0" expanded="true" />
                     <element signature="e#1045#1149#0" expanded="true" />
+                    <element signature="e#1073#1080#0" expanded="true" />
                     <element signature="e#1889#1959#0" expanded="true" />
                     <element signature="e#2471#2504#0" expanded="true" />
                     <element signature="e#2900#2951#0" expanded="true" />
@@ -185,11 +190,12 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/test/src/basic_test.cpp">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-60">
-                  <caret line="83" column="18" lean-forward="true" selection-start-line="83" selection-start-column="18" selection-end-line="83" selection-end-column="18" />
+                <state relative-caret-position="165">
+                  <caret line="94" column="3" lean-forward="true" selection-start-line="94" selection-start-column="3" selection-end-line="94" selection-end-column="3" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
-                    <element signature="e#1032#1045#0" expanded="true" />
+                    <element signature="e#435#448#0" expanded="true" />
+                    <element signature="e#1945#1961#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
@@ -202,13 +208,14 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/include/basic.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="210">
-                  <caret line="26" column="51" selection-start-line="26" selection-start-column="51" selection-end-line="26" selection-end-column="51" />
+                <state relative-caret-position="417">
+                  <caret line="47" column="18" lean-forward="true" selection-start-line="47" selection-start-column="18" selection-end-line="47" selection-end-column="18" />
                   <folding>
                     <element signature="e#14#31#0" expanded="true" />
                     <element signature="e#268#280#0" expanded="true" />
                     <element signature="e#639#702#0" expanded="true" />
                     <element signature="e#1045#1149#0" expanded="true" />
+                    <element signature="e#1073#1080#0" expanded="true" />
                     <element signature="e#1889#1959#0" expanded="true" />
                     <element signature="e#2471#2504#0" expanded="true" />
                     <element signature="e#2900#2951#0" expanded="true" />
@@ -220,9 +227,10 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/include/comtol.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-475">
-                  <caret line="7" selection-start-line="7" selection-end-line="7" selection-end-column="18" />
+                <state relative-caret-position="518">
+                  <caret line="54" selection-start-line="54" selection-end-line="54" selection-end-column="31" />
                   <folding>
+                    <element signature="e#14#34#0" expanded="true" />
                     <element signature="e#983#996#0" expanded="true" />
                     <element signature="e#1054#1067#0" expanded="true" />
                   </folding>
@@ -233,10 +241,12 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/include/evaluation.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="288">
-                  <caret line="69" column="10" lean-forward="true" selection-start-line="69" selection-start-column="10" selection-end-line="69" selection-end-column="10" />
+                <state relative-caret-position="585">
+                  <caret line="126" column="2" lean-forward="true" selection-start-line="126" selection-start-column="2" selection-end-line="126" selection-end-column="2" />
                   <folding>
                     <element signature="e#14#31#0" expanded="true" />
+                    <element signature="e#1652#1670#0" expanded="true" />
+                    <element signature="e#1897#1930#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
@@ -253,6 +263,8 @@
       <find>test_XOR</find>
       <find>str_split</find>
       <find>check_split</find>
+      <find>split</find>
+      <find>vec_str</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -265,8 +277,8 @@
         <option value="$PROJECT_DIR$/include/evaltools.h" />
         <option value="$PROJECT_DIR$/include/basic.h" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/include/strings.h" />
         <option value="$PROJECT_DIR$/include/evaluation.h" />
+        <option value="$PROJECT_DIR$/include/strings.h" />
         <option value="$PROJECT_DIR$/test/src/basic_test.cpp" />
       </list>
     </option>
@@ -566,33 +578,43 @@
       <workItem from="1538127848871" duration="52000" />
       <workItem from="1538128001908" duration="1136000" />
       <workItem from="1538372957045" duration="13207000" />
+      <workItem from="1538459269124" duration="17316000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="32032000" />
+    <option name="totallyTimeSpent" value="49348000" />
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1920" height="1022" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18996799" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.19210246" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.32995495" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.27364865" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.39977476" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32995495" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info active="true" anchor="bottom" id="Messages" order="8" visible="true" weight="0.2939189" />
+      <window_info anchor="bottom" id="Messages" order="8" weight="0.2939189" />
       <window_info anchor="bottom" id="Terminal" order="9" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="11" show_stripe_button="false" />
-      <window_info anchor="bottom" id="CMake" order="12" />
-      <window_info anchor="bottom" id="Docker" order="13" show_stripe_button="false" />
+      <window_info anchor="bottom" id="CMake" order="12" weight="0.32995495" />
+      <window_info anchor="bottom" id="Docker" order="13" weight="0.32995495" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -615,16 +637,34 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="555">
+        <state relative-caret-position="495">
           <caret line="37" column="24" selection-start-line="37" selection-start-column="24" selection-end-line="37" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/basic.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="417">
+          <caret line="47" column="18" lean-forward="true" selection-start-line="47" selection-start-column="18" selection-end-line="47" selection-end-column="18" />
+          <folding>
+            <element signature="e#14#31#0" expanded="true" />
+            <element signature="e#268#280#0" expanded="true" />
+            <element signature="e#639#702#0" expanded="true" />
+            <element signature="e#1045#1149#0" expanded="true" />
+            <element signature="e#1073#1080#0" expanded="true" />
+            <element signature="e#1889#1959#0" expanded="true" />
+            <element signature="e#2471#2504#0" expanded="true" />
+            <element signature="e#2900#2951#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/include/comtol.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-475">
-          <caret line="7" selection-start-line="7" selection-end-line="7" selection-end-column="18" />
+        <state relative-caret-position="518">
+          <caret line="54" selection-start-line="54" selection-end-line="54" selection-end-column="31" />
           <folding>
+            <element signature="e#14#34#0" expanded="true" />
             <element signature="e#983#996#0" expanded="true" />
             <element signature="e#1054#1067#0" expanded="true" />
           </folding>
@@ -633,47 +673,35 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/include/strings.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="215" column="26" selection-start-line="215" selection-start-column="17" selection-end-line="215" selection-end-column="26" />
+        <state relative-caret-position="-945">
+          <caret line="21" column="31" selection-start-line="21" selection-start-column="31" selection-end-line="21" selection-end-column="31" />
           <folding>
             <element signature="e#14#35#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/basic.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="25" selection-start-line="7" selection-start-column="25" selection-end-line="7" selection-end-column="25" />
-          <folding>
-            <element signature="e#14#31#0" expanded="true" />
-            <element signature="e#268#280#0" expanded="true" />
-            <element signature="e#639#702#0" expanded="true" />
-            <element signature="e#1045#1149#0" expanded="true" />
-            <element signature="e#1889#1959#0" expanded="true" />
-            <element signature="e#2471#2504#0" expanded="true" />
-            <element signature="e#2900#2951#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/evaluation.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="69" column="10" lean-forward="true" selection-start-line="69" selection-start-column="10" selection-end-line="69" selection-end-column="10" />
-          <folding>
-            <element signature="e#14#31#0" expanded="true" />
+            <element signature="e#6447#6460#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/src/basic_test.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-60">
-          <caret line="83" column="18" lean-forward="true" selection-start-line="83" selection-start-column="18" selection-end-line="83" selection-end-column="18" />
+        <state relative-caret-position="165">
+          <caret line="94" column="3" lean-forward="true" selection-start-line="94" selection-start-column="3" selection-end-line="94" selection-end-column="3" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
-            <element signature="e#1032#1045#0" expanded="true" />
+            <element signature="e#435#448#0" expanded="true" />
+            <element signature="e#1945#1961#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/evaluation.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="585">
+          <caret line="126" column="2" lean-forward="true" selection-start-line="126" selection-start-column="2" selection-end-line="126" selection-end-column="2" />
+          <folding>
+            <element signature="e#14#31#0" expanded="true" />
+            <element signature="e#1652#1670#0" expanded="true" />
+            <element signature="e#1897#1930#0" expanded="true" />
           </folding>
         </state>
       </provider>

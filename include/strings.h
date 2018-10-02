@@ -9,7 +9,6 @@
 #include <iomanip>
 
 
-
 #include "basic.h"
 
 namespace AGizmo {
@@ -19,6 +18,9 @@ using sstream = std::stringstream;
 
 using std::nullopt;
 using opt_int = std::optional<int>;
+
+using vec_str = vector<string>;
+
 using chours = std::chrono::hours;
 using cminutes = std::chrono::minutes;
 using cseconds = std::chrono::seconds;
@@ -195,6 +197,13 @@ inline string str_frame(string message, size_t width, const string &prefix,
     }
 }
 
+template <typename It> string str_join(It begin, It end, string sep = "\t") {
+  if (begin == end)
+    return "";
+  return accumulate(next(begin), end, *begin,
+                    [sep](string a, string b) { return a + sep + b; });
+}
+
 } // namespace StringFormat
 
 namespace StringSearch {
@@ -265,12 +274,7 @@ inline auto count_all(const string &source, char query, size_t pos = 0) {
 //}
 //
 //
-//template <typename It> string str_join(It begin, It end, string sep = "\t") {
-//    if (begin == end)
-//        return "";
-//    return accumulate(next(begin), end, *begin,
-//                      [sep](string a, string b) { return a + sep + b; });
-//}
+
 //
 //template <typename Container>
 //string str_join(const Container &container, string sep = "\t") {

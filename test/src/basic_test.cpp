@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <numeric>
 
 using sstream = std::stringstream;
 
@@ -13,14 +14,22 @@ using std::endl;
 
 using namespace AGizmo;
 using namespace Evaluation;
+using namespace StringFormat;
 //using Evaluation::Stats;
 //using Evaluation::passed_str;
 //using Evaluation::failed_str;
 
 using StringFormat::str_frame;
 
+using std::accumulate;
+using std::next;
+using std::to_string;
+using std::move;
+
+using std::pair;
 using pair_bool = pair<bool, bool>;
 using pair_char = pair<char, char>;
+using pair_int = pair<int, int>;
 
 template <typename It>
 Stats test_XOR(It begin, It end, sstream &message){
@@ -79,11 +88,77 @@ Stats check_XOR(bool verbose = false){
 
 }
 
+class SplitOutput: public Output<vector<vector<int>>> {
+public:
+  SplitOutput() = default;
+  SplitOutput(vector<vector<int>> output): Output{move(output)} {
+  }
+  string str() const override {
+    if (output.empty())
+      return "{{}}";
+    else {
+      string result{"{"};
+
+      for (const auto &ele: output) {
+        vec_str temp{};
+
+        transform(ele.begin(), ele.end(), back_inserter(temp),
+                  [](int a){ return to_string(a);});
+
+        result += "{" + str_join(temp.begin(), temp.end(), ", ") + "}, ";
+      }
+      return result + "}";
+    }
+  }
+};
+
+template <typename Input>
+SplitOutput test_split(Input input){
+  SplitOutput result{};
+
+  return result;
+}
+
 Stats check_split(bool verbose = false){
   Stats result;
   sstream message;
 
-  message << "~~~ Checking Basic::split\n\nInteger Test:\n";
+  cout << "\n~~~ Checking Basic::split\n\nInteger Test:\n";
+  message << "\n~~~ Checking Basic::split\n\nInteger Test:\n";
+
+  struct Input {
+      vector<int> input{}, sep{};
+
+      string str() const{
+        if (input.empty())
+          return "{}";
+        else
+          return "{" + accumulate(next(input.begin()), input.end(),
+                  to_string(input[0]),
+                  [](string a, int b) {return a + ", " + to_string(b);})
+                  +"}";
+      }
+  };
+
+  SplitOutput temp = SplitOutput({{1,2,3}, });
+
+  const vector<Input> input = {
+          {{}, {}},
+          {{1, 2, 3}, {}},
+          {{1, 2, 3}, {2}},
+          {{1, 2, 2, 3}, {2}},
+  };
+
+  const vector<SplitOutput> expected {
+          {{}},
+          {{{1,2,3}, }},
+          {{{1}, {3}}},
+          {{{1}, {}, {3}}}
+  };
+
+  Evaluator evaluator{input, expected};
+
+  evaluator.invoke(test_split);
 
   if (result.hasFailed() || verbose)
     cout << message.str();

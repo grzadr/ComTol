@@ -7,8 +7,10 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <algorithm>
 
 #include "strings.h"
+
 
 using namespace std::string_literals;
 // using namespace HKL;
@@ -21,12 +23,15 @@ using std::pair;
 
 using std::tuple;
 using std::vector;
+using std::back_inserter;
 
 using std::size_t;
 using std::string;
 using std::to_string;
 using std::ostream;
 using sstream = std::stringstream;
+
+using std::transform;
 
 //using pair_int = pair<int, int>;
 using pair_str = pair<string, string>;
@@ -82,9 +87,43 @@ public:
 
   double getRatio() const { return failed / static_cast<double>(total); }
 
-   friend std::ostream &operator<<(ostream &stream, const Stats &stats) {
-     return stream << stats.total;
-   }
+  friend std::ostream &operator<<(ostream &stream, const Stats &stats) {
+    return stream << stats.total;
+  }
+};
+
+template <typename OutType>
+class Output {
+protected:
+  OutType output{};
+public:
+  Output() = default;
+  virtual ~Output() = default;
+  explicit Output(OutType output): output{move(output)} {};
+  virtual string str() const = 0;
+};
+
+template <typename Input, typename Output>
+class Evaluator {
+  vector<Input> input;
+  vector<Output> expected, outcome;
+private:
+
+public:
+  Evaluator() = delete;
+
+  Evaluator(vector<Input> input, vector<Output> expected):
+  input{input}, expected{expected} {
+    if (input.size() != expected.size())
+      throw runtime_error("Input and Expected have different sizes!");
+  }
+
+  void invoke(Output (*func)(Input)){
+    transform(input.begin(), input.end(), back_inserter(outcome), func);
+
+    for (const auto& ele: outcome )
+      cout << ele.str() << endl;
+  }
 };
 
 inline const string passed_str{"[ PASSED ]"};
