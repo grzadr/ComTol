@@ -2,12 +2,20 @@
 
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
+#include <functional>
+
+namespace AGizmo {
 
 using std::pair;
 using std::vector;
 using std::runtime_error;
 
-namespace AGizmo {
+using std::default_searcher;
+using std::boyer_moore_horspool_searcher;
+using std::boyer_moore_searcher;
+template <typename It> using bmhs = boyer_moore_horspool_searcher<It>;
+template <typename It> using defs = default_searcher<It>;
 
 namespace Basic {
 

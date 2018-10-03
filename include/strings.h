@@ -200,8 +200,17 @@ inline string str_frame(string message, size_t width, const string &prefix,
 template <typename It> string str_join(It begin, It end, string sep = "\t") {
   if (begin == end)
     return "";
-  return accumulate(next(begin), end, *begin,
-                    [sep](string a, string b) { return a + sep + b; });
+
+//  return accumulate(next(begin), end, *begin,
+//                    [sep](string a, string b) { return a + sep + b; });
+  sstream output;
+  output << *begin;
+
+  auto print = [&output, sep](auto& ele) { output << sep << ele; };
+
+  std::for_each(next(begin), end, print);
+
+  return output.str();
 }
 
 } // namespace StringFormat

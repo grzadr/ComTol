@@ -1,38 +1,33 @@
-#include "evaluation.h"
 #include "basic.h"
 #include "strings.h"
 
+#include "basic_test.hpp"
 
 #include <iostream>
-#include <sstream>
-#include <numeric>
 
-using sstream = std::stringstream;
+#include <numeric>
 
 using std::cout;
 using std::endl;
 
-using namespace AGizmo;
-using namespace Evaluation;
 using namespace StringFormat;
-//using Evaluation::Stats;
-//using Evaluation::passed_str;
-//using Evaluation::failed_str;
+// using Evaluation::Stats;
+// using Evaluation::passed_str;
+// using Evaluation::failed_str;
 
 using StringFormat::str_frame;
 
 using std::accumulate;
+using std::move;
 using std::next;
 using std::to_string;
-using std::move;
 
 using std::pair;
 using pair_bool = pair<bool, bool>;
 using pair_char = pair<char, char>;
 using pair_int = pair<int, int>;
 
-template <typename It>
-Stats test_XOR(It begin, It end, sstream &message){
+template <typename It> Stats test_XOR(It begin, It end, sstream &message) {
   Stats result;
 
   for (; begin != end; ++begin) {
@@ -41,7 +36,7 @@ Stats test_XOR(It begin, It end, sstream &message){
     const auto passed = outcome == expected;
 
     message << ++result << ") XOR(" << std::boolalpha << input.first << ", "
-    << std::boolalpha << input.second << ") -> ";
+            << std::boolalpha << input.second << ") -> ";
 
     result.addFailure(!passed);
 
@@ -56,25 +51,27 @@ Stats test_XOR(It begin, It end, sstream &message){
   return result;
 }
 
-Stats check_XOR(bool verbose = false){
+Stats check_XOR(bool verbose = false) {
   Stats result;
   sstream message;
 
   message << "~~~ Checking Basic::XOR\n\nBoolean Test:\n";
 
-  vector<pair<pair_bool, bool>> test_set {
-    {{false, false}, false},
-    {{true, false}, true},
-    {{false, true}, true},
-    {{true, true}, false},};
+  vector<pair<pair_bool, bool>> test_set{
+      {{false, false}, false},
+      {{true, false}, true},
+      {{false, true}, true},
+      {{true, true}, false},
+  };
 
   result.update(test_XOR(test_set.begin(), test_set.end(), message));
 
-  vector<pair<pair_char, bool>> test_set_char {
-          {{0, 0}, false},
-          {{0, '+'}, true},
-          {{'+', 0}, true},
-          {{'+', '+'}, false},};
+  vector<pair<pair_char, bool>> test_set_char{
+      {{0, 0}, false},
+      {{0, '+'}, true},
+      {{'+', 0}, true},
+      {{'+', '+'}, false},
+  };
 
   message << "Char Test:\n";
   result.update(test_XOR(test_set_char.begin(), test_set_char.end(), message));
@@ -85,41 +82,9 @@ Stats check_XOR(bool verbose = false){
   cout << "~~~ " << gen_summary(result, "Checking Basic::XOR") << endl;
 
   return result;
-
 }
 
-class SplitOutput: public Output<vector<vector<int>>> {
-public:
-  SplitOutput() = default;
-  SplitOutput(vector<vector<int>> output): Output{move(output)} {
-  }
-  string str() const override {
-    if (output.empty())
-      return "{{}}";
-    else {
-      string result{"{"};
-
-      for (const auto &ele: output) {
-        vec_str temp{};
-
-        transform(ele.begin(), ele.end(), back_inserter(temp),
-                  [](int a){ return to_string(a);});
-
-        result += "{" + str_join(temp.begin(), temp.end(), ", ") + "}, ";
-      }
-      return result + "}";
-    }
-  }
-};
-
-template <typename Input>
-SplitOutput test_split(Input input){
-  SplitOutput result{};
-
-  return result;
-}
-
-Stats check_split(bool verbose = false){
+Stats check_split(bool verbose = false) {
   Stats result;
   sstream message;
 
@@ -127,44 +92,59 @@ Stats check_split(bool verbose = false){
   message << "\n~~~ Checking Basic::split\n\nInteger Test:\n";
 
   struct Input {
-      vector<int> input{}, sep{};
+    const PrintableVector<int> input{};
+    const PrintableVector<int> sep{};
 
-      string str() const{
-        if (input.empty())
-          return "{}";
-        else
-          return "{" + accumulate(next(input.begin()), input.end(),
-                  to_string(input[0]),
-                  [](string a, int b) {return a + ", " + to_string(b);})
-                  +"}";
-      }
+    string str() const noexcept {
+      return "(" + input.str() + ", " + sep.str() + ")";
+    }
+
+    NestedVector<int> validate() const {
+      NestedVector<int> result{};
+      Basic::split<PrintableVector<int>, defs>(input.begin(), input.end(),
+                                               sep.begin(), sep.end(),
+                                               back_inserter(result.values));
+
+      return result;
+    }
   };
-
-  SplitOutput temp = SplitOutput({{1,2,3}, });
 
   const vector<Input> input = {
-          {{}, {}},
-          {{1, 2, 3}, {}},
-          {{1, 2, 3}, {2}},
-          {{1, 2, 2, 3}, {2}},
+      {{}, {}},
+      {{1, 2, 3}, {}},
+      {{1, 2, 3}, {2}},
+      {{1, 2, 2, 3}, {2}},
   };
 
-  const vector<SplitOutput> expected {
-          {{}},
-          {{{1,2,3}, }},
-          {{{1}, {3}}},
-          {{{1}, {}, {3}}}
+  const vector<NestedVector<int>> expected = {{{}},
+                                              {{
+                                                  {1, 2, 3},
+                                              }},
+                                              {{{1}, {3}}},
+                                              {{{1}, {}, {3}}}
+
   };
 
-  Evaluator evaluator{input, expected};
+  Evaluator test_split("Basic::split", input, expected);
+  test_split.generate();
 
-  evaluator.invoke(test_split);
+  //  const vector<SplitOutput> expected {
+  //          {{}},
+  //          {{{1,2,3}, }},
+  //          {{{1}, {3}}},
+  //          {{{1}, {}, {3}}}
+  //  };
+
+  //  Evaluator evaluator{input, expected};
+
+  //  evaluator.invoke(test_split);
 
   if (result.hasFailed() || verbose)
     cout << message.str();
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::split function")
-       << "\n" << endl;
+       << "\n"
+       << endl;
 
   return result;
 }
@@ -172,83 +152,91 @@ Stats check_split(bool verbose = false){
 // pair_int check_str_join_fields(bool verbose = false) {
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking str_replace function" << endl;
-// 
+//
 //   sstream message;
-// 
+//
 //   message << "\n";
-// 
+//
 //   const umap_str input_str = {{"K3", "V3"}, {"K2", ""}, {"K1", "V1"}};
 //   auto expected = "K1=V1;K2=;K3=V3";
 //   auto result = str_join_fields(input_str);
-// 
+//
 //   message << std::setw(3) << std::right << ++total << ")";
 //   if (result != expected) {
 //     ++failed;
-//     message << std::setw(20) << std::right << result << " != " << std::setw(20)
+//     message << std::setw(20) << std::right << result << " != " <<
+//     std::setw(20)
 //             << std::left << expected << " " << failed_str << "\n";
 //   } else
-//     message << std::setw(20) << std::right << result << " == " << std::setw(20)
+//     message << std::setw(20) << std::right << result << " == " <<
+//     std::setw(20)
 //             << std::left << expected << " " << passed_str << "\n";
-// 
+//
 //   const umap<string, opt_str> input_opt = {
 //       {"K3", ""}, {"K2", {}}, {"K1", "V1"}};
 //   expected = "K1=V1;K2;K3=";
 //   result = str_join_fields(input_opt);
-// 
+//
 //   message << std::setw(3) << std::right << ++total << ")";
 //   if (result != expected) {
 //     ++failed;
-//     message << std::setw(20) << std::right << result << " != " << std::setw(20)
+//     message << std::setw(20) << std::right << result << " != " <<
+//     std::setw(20)
 //             << std::left << expected << " " << failed_str << "\n";
 //   } else
-//     message << std::setw(20) << std::right << result << " == " << std::setw(20)
+//     message << std::setw(20) << std::right << result << " == " <<
+//     std::setw(20)
 //             << std::left << expected << " " << passed_str << "\n";
-// 
+//
 //   const vec_str names{"K3", "K2"};
 //   expected = "K3=V3;K2=";
 //   result = str_join_fields(input_str, names);
-// 
+//
 //   message << std::setw(3) << std::right << ++total << ")";
 //   if (result != expected) {
 //     ++failed;
-//     message << std::setw(20) << std::right << result << " != " << std::setw(20)
+//     message << std::setw(20) << std::right << result << " != " <<
+//     std::setw(20)
 //             << std::left << expected << " " << failed_str << "\n";
 //   } else
-//     message << std::setw(20) << std::right << result << " == " << std::setw(20)
+//     message << std::setw(20) << std::right << result << " == " <<
+//     std::setw(20)
 //             << std::left << expected << " " << passed_str << "\n";
-// 
+//
 //   expected = "K3=;K2";
 //   result = str_join_fields(input_opt, names);
-// 
+//
 //   message << std::setw(3) << std::right << ++total << ")";
 //   if (result != expected) {
 //     ++failed;
-//     message << std::setw(20) << std::right << result << " != " << std::setw(20)
+//     message << std::setw(20) << std::right << result << " != " <<
+//     std::setw(20)
 //             << std::left << expected << " " << failed_str << "\n";
 //   } else
-//     message << std::setw(20) << std::right << result << " == " << std::setw(20)
+//     message << std::setw(20) << std::right << result << " == " <<
+//     std::setw(20)
 //             << std::left << expected << " " << passed_str << "\n";
-// 
+//
 //   if (failed or verbose)
 //     cout << message.str();
-// 
+//
 //   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-// 
+//
 //   return {total, failed};
 // }
-// 
+//
 // pair_int check_str_replace(bool verbose = false) {
 //   struct Element {
 //     string source, query, value, expected;
 //   };
-// 
+//
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking str_replace function" << endl;
-// 
+//
 //   sstream message;
-// 
+//
 //   message << "\n";
-// 
+//
 //   const vector<Element> input{
 //       {"0034007800", "00", "___", "___34___78___"},
 //       {"ABAABBABCAB", "", "_", "ABAABBABCAB"},
@@ -259,7 +247,7 @@ Stats check_split(bool verbose = false){
 //       {"ABC", "B", "", "AC"},
 //       {"ABC", "B", "D", "ADC"},
 //   };
-// 
+//
 //   for (const auto &[source, query, value, expected] : input) {
 //     auto result = source;
 //     str_replace(result, query, value);
@@ -267,7 +255,8 @@ Stats check_split(bool verbose = false){
 //             << std::left
 //             << " str_replace(\"" + source + "\", \"" + query + "\", \"" +
 //                    value + "\")"
-//             << " -> " << std::setw(20) << std::right << "\"" + result + "\" ";
+//             << " -> " << std::setw(20) << std::right << "\"" + result + "\"
+//             ";
 //     if (result != expected) {
 //       ++failed;
 //       message << std::setw(20) << std::left << "!= \"" + expected + "\" "
@@ -276,15 +265,15 @@ Stats check_split(bool verbose = false){
 //       message << std::setw(20) << std::left << "== \"" + expected + "\" "
 //               << passed_str << "\n";
 //   }
-// 
+//
 //   message << "\n";
-// 
+//
 //   const map<string, string> input_map{
 //       {"AB", "__"}, {"C", "++"}, {"DE", ""}, {"==", "##"}, {"++", "AB"}};
 //   string source{"++DEXABDEYDEC"}, expected{"__X__Y++"};
 //   auto result = source;
 //   str_replace_n(result, input_map);
-// 
+//
 //   message << std::setw(3) << std::right << ++total << ")" << std::setw(40)
 //           << std::left << " str_replace(\"" + source + "\", input_map)"
 //           << " -> " << std::setw(20) << std::right << "\"" + result + "\" ";
@@ -295,27 +284,27 @@ Stats check_split(bool verbose = false){
 //   } else
 //     message << std::setw(20) << std::left << "== \"" + expected + "\" "
 //             << passed_str << "\n";
-// 
+//
 //   if (failed or verbose)
 //     cout << message.str();
-// 
+//
 //   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-// 
+//
 //   return {total, failed};
 // }
-// 
+//
 // pair_int check_str_map_fields(bool verbose = false) {
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking str_map_fields function" << endl;
-// 
+//
 //   sstream message;
-// 
+//
 //   message << "\n";
-// 
+//
 //   const vector<pair<string, umap<string, opt_str>>> input{
 //       {"K1=V1;K2;K3=", {{"K1", "V1"}, {"K2", {}}, {"K3", ""}}},
 //   };
-// 
+//
 //   for (const auto &[source, expected] : input) {
 //     const auto result = str_map_fields(source);
 //     message << std::setw(3) << std::right << ++total << ")" << std::setw(40)
@@ -326,25 +315,25 @@ Stats check_split(bool verbose = false){
 //     } else
 //       message << passed_str << "\n";
 //   }
-// 
+//
 //   message << "\n";
-// 
+//
 //   if (failed or verbose)
 //     cout << message.str();
-// 
+//
 //   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-// 
+//
 //   return {total, failed};
 // }
-// 
+//
 // pair_int check_str_clean(bool verbose = false) {
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking pairify function" << endl;
-// 
+//
 //   sstream message;
-// 
+//
 //   message << "\n";
-// 
+//
 //   const vector<pair_str> input_simple = {
 //       {"", ""},
 //       {" \t  \t ", ""},
@@ -353,7 +342,7 @@ Stats check_split(bool verbose = false){
 //       {"\t A  B", "A B"},
 //       {"A  B \t", "A B"},
 //   };
-// 
+//
 //   for (const auto &[query, expected] : input_simple) {
 //     const auto result = str_clean(query);
 //     message << std::setw(3) << std::right << ++total << ")" << std::setw(40)
@@ -365,15 +354,15 @@ Stats check_split(bool verbose = false){
 //     } else
 //       message << "== \"" << expected << "\" " << passed_str << "\n";
 //   }
-// 
+//
 //   message << "\n";
-// 
+//
 //   const vector<pair_str> input_strip = {
 //       {"", ""},
 //       {" \t  \t\t  \t ", "\t \t\t \t"},
 //       {"A\t   \tB", "A\t \tB"},
 //   };
-// 
+//
 //   for (const auto &[query, expected] : input_strip) {
 //     const auto result = str_clean(query, true, " \n");
 //     message << std::setw(3) << std::right << ++total << ")" << std::setw(40)
@@ -385,30 +374,30 @@ Stats check_split(bool verbose = false){
 //     } else
 //       message << "== \"" << expected << "\" " << passed_str << "\n";
 //   }
-// 
+//
 //   message << "\n";
-// 
+//
 //   if (failed or verbose)
 //     cout << message.str();
-// 
+//
 //   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-// 
+//
 //   return {total, failed};
 // }
-// 
+//
 // pair_int check_str_clean_ends(bool verbose = false) {
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking clean_ends function" << endl;
-// 
+//
 //   sstream message;
-// 
+//
 //   message << "\n";
-// 
+//
 //   const vector<pair_str> input_simple = {
 //       {" \t A  B \t ", "A  B"}, {" \t  \t ", ""},     {"", ""},
 //       {"A  B", "A  B"},         {" \t A  B", "A  B"}, {"A  B \t ", "A  B"},
 //   };
-// 
+//
 //   for (const auto &[query, expected] : input_simple) {
 //     const auto result = str_clean_ends(query);
 //     message << std::setw(3) << std::right << ++total << ")" << std::setw(40)
@@ -420,14 +409,14 @@ Stats check_split(bool verbose = false){
 //     } else
 //       message << "== \"" << expected << "\" " << passed_str << "\n";
 //   }
-// 
+//
 //   message << "\n";
-// 
+//
 //   const vector<pair_str> input_strip = {
 //       {"\t A  B \t", " A  B "}, {"\t  \t", "  "},     {"", ""},
 //       {"A  B", "A  B"},         {"\t A  B", " A  B"}, {"A  B \t", "A  B "},
 //   };
-// 
+//
 //   for (const auto &[query, expected] : input_strip) {
 //     const auto result = str_clean_ends(query, "\t\n");
 //     message << std::setw(3) << std::right << ++total << ")" << std::setw(40)
@@ -439,25 +428,25 @@ Stats check_split(bool verbose = false){
 //     } else
 //       message << "== \"" << expected << "\" " << passed_str << "\n";
 //   }
-// 
+//
 //   message << "\n";
-// 
+//
 //   if (failed or verbose)
 //     cout << message.str();
-// 
+//
 //   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-// 
+//
 //   return {total, failed};
 // }
-// 
+//
 // pair_int check_str_split(bool verbose = false) {
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking pairify function" << endl;
-// 
+//
 //   sstream message;
-// 
+//
 //   message << "\n";
-// 
+//
 //   const vector<tuple<string, char, vector<string>>> input_char{
 //       {"", 0, {}},
 //       {"ABC", 0, {"ABC"}},
@@ -465,7 +454,7 @@ Stats check_split(bool verbose = false){
 //       {",", ',', {"", ""}},
 //       {",ABC,", ',', {"", "ABC", ""}},
 //   };
-// 
+//
 //   for (const auto &[query, sep, expected] : input_char) {
 //     const auto result = str_split(query, sep, true);
 //     message << std::setw(3) << std::right << ++total << ")" << std::setw(25)
@@ -478,31 +467,31 @@ Stats check_split(bool verbose = false){
 //     } else
 //       message << "== " << expected.size() << " " << passed_str << "\n";
 //   }
-// 
+//
 //   message << "\n";
-// 
+//
 //   if (failed or verbose)
 //     cout << message.str();
-// 
+//
 //   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-// 
+//
 //   return {total, failed};
 // }
-// 
+//
 // pair_int check_only_digits(bool verbose = false) {
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking pairify function" << endl;
-// 
+//
 //   sstream message;
-// 
+//
 //   message << "\n";
-// 
+//
 //   vector<pair<string, bool>> input{{"0", true},
 //                                    {"-1", false},
 //                                    {"", false},
 //                                    {"3.14", false},
 //                                    {"10E2", false}};
-// 
+//
 //   for (const auto &[query, expected] : input) {
 //     const auto result = only_digits(query);
 //     message << std::setw(3) << std::right << ++total << ")" << std::setw(20)
@@ -514,56 +503,56 @@ Stats check_split(bool verbose = false){
 //     } else
 //       message << "== " << expected << " " << passed_str << "\n";
 //   }
-// 
+//
 //   message << "\n";
-// 
+//
 //   if (failed or verbose)
 //     cout << message.str();
-// 
+//
 //   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-// 
+//
 //   return {total, failed};
 // }
-// 
+//
 // pair_int check_pairify(bool verbose = false) {
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking pairify function" << endl;
-// 
+//
 //   sstream message;
-// 
+//
 //   message << "\n";
-// 
+//
 //   const vector<tuple<vector<string>, vector<int>, vector<pair<string, int>>>>
 //       input{
 //           {{"A", "B", "C"}, {1, 2, 3}, {{"A", 1}, {"B", 2}, {"C", 3}}},
 //       };
-// 
+//
 //   for (const auto &[first, second, expected] : input) {
 //     message << std::setw(3) << std::right << ++total << ") ";
-// 
+//
 //     if (pairify(first, second) != expected) {
 //       ++failed;
 //       message << failed_str << "\n";
 //     } else
 //       message << passed_str << "\n";
 //   }
-// 
+//
 //   message << "\n";
-// 
+//
 //   if (failed or verbose)
 //     cout << message.str();
-// 
+//
 //   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-// 
+//
 //   return {total, failed};
 // }
-// 
+//
 // pair_int check_split(bool verbose = false) {
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking split function" << endl;
-// 
+//
 //   sstream message;
-// 
+//
 //   const vector<tuple<string, string, vector<string>>> input_string{
 //       {"", "", {""}},
 //       {"", "_", {""}},
@@ -580,7 +569,7 @@ Stats check_split(bool verbose = false){
 //       {"123ABC123123DEF123", "123", {"", "ABC", "", "DEF", ""}},
 //       {"123123123", "123", {"", "", "", ""}},
 //   };
-// 
+//
 //   for (auto [query, sep, expected] : input_string) {
 //     vector<string> result{};
 //     split<string, defs>(query.begin(), query.end(), begin(sep), end(sep),
@@ -597,10 +586,11 @@ Stats check_split(bool verbose = false){
 //     } else
 //       message << passed_str << "\n";
 //   }
-// 
+//
 //   message << "\n";
-// 
-//   const vector<tuple<vector<int>, vector<int>, vector<vector<int>>>> input_int{
+//
+//   const vector<tuple<vector<int>, vector<int>, vector<vector<int>>>>
+//   input_int{
 //       {{}, {}, {{}}},
 //       {{1, 2, 3}, {}, {{1, 2, 3}}},
 //       {{1, 2, 3}, {2}, {{1}, {3}}},
@@ -615,10 +605,11 @@ Stats check_split(bool verbose = false){
 //        {0, 0, 0},
 //        {{}, {1, 2, 3}, {4, 5, 6}, {}}},
 //   };
-// 
+//
 //   for (auto [query, sep, expected] : input_int) {
 //     vector<vector<int>> result{};
-//     split<vector<int>, defs>(query.begin(), query.end(), begin(sep), end(sep),
+//     split<vector<int>, defs>(query.begin(), query.end(), begin(sep),
+//     end(sep),
 //                              back_inserter(result));
 //     message << std::setw(3) << std::right << ++total << ") ";
 //     if (result != expected) {
@@ -627,32 +618,32 @@ Stats check_split(bool verbose = false){
 //     } else
 //       message << passed_str << "\n";
 //   }
-// 
+//
 //   message << "\n";
-// 
+//
 //   if (failed or verbose)
 //     cout << message.str();
-// 
+//
 //   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-// 
+//
 //   return {total, failed};
 // }
-// 
+//
 
-// 
+//
 // pair_int check_open_file(bool verbose = false) {
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking open_file function" << endl;
-// 
+//
 //   sstream message;
-// 
+//
 //   ++total;
-// 
+//
 //   auto file = std::ofstream("test");
-// 
+//
 //   file << "TEST\n";
 //   file.close();
-// 
+//
 //   try {
 //     ifstream input{};
 //     open_file("test", input);
@@ -666,17 +657,17 @@ Stats check_split(bool verbose = false){
 //     cout << ex.what();
 //     ++failed;
 //   }
-// 
+//
 //   //  fs::remove(path("test"));
-// 
+//
 //   if (failed or verbose)
 //     cout << message.str();
-// 
+//
 //   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-// 
+//
 //   return {total, failed};
 // }
-// 
+//
 // pair_int EvalComTol::eval_comtol(bool verbose) {
 //   int total = 0, failed = 0;
 //   cout << gen_framed("Evaluating Common Tools") << "\n\n";
@@ -691,15 +682,15 @@ Stats check_split(bool verbose = false){
 //   update_stats(check_str_join_fields(verbose), total, failed);
 //   update_stats(check_open_file(verbose), total, failed);
 //   cout << gen_framed("Evaluation Completed") << "\n\n";
-// 
+//
 //   return {total, failed};
 // }
 
-int perform_tests(bool verbose){
+int perform_tests(bool verbose) {
 
   Stats result;
 
-  for (int i = 0; i < 2; ++i){
+  for (int i = 0; i < 2; ++i) {
     bool verbose = i;
     Stats result;
 
@@ -709,13 +700,9 @@ int perform_tests(bool verbose){
     result(check_split(verbose));
 
     cout << gen_summary(result, "Evaluation", true) << "\n";
-
   }
 
   return result.getFailed();
 }
 
-int main (){
-
-  return perform_tests(true);
-}
+int main() { return perform_tests(true); }

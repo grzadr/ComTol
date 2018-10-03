@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -7,10 +8,8 @@
 #include <string>
 #include <tuple>
 #include <vector>
-#include <algorithm>
 
 #include "strings.h"
-
 
 using namespace std::string_literals;
 // using namespace HKL;
@@ -21,19 +20,19 @@ using std::cout;
 using std::endl;
 using std::pair;
 
+using std::back_inserter;
 using std::tuple;
 using std::vector;
-using std::back_inserter;
 
+using std::ostream;
 using std::size_t;
 using std::string;
 using std::to_string;
-using std::ostream;
 using sstream = std::stringstream;
 
 using std::transform;
 
-//using pair_int = pair<int, int>;
+// using pair_int = pair<int, int>;
 using pair_str = pair<string, string>;
 
 namespace AGizmo {
@@ -47,7 +46,6 @@ private:
   int total{0}, failed{0};
 
 public:
-
   Stats() = default;
 
   Stats &operator++() {
@@ -55,22 +53,16 @@ public:
     return *this;
   }
 
-  void update(int t, int f){
+  void update(int t, int f) {
     total += t;
     failed += f;
   }
 
-  void update(const Stats &input) {
-    this->update(input.total, input.failed);
-  }
+  void update(const Stats &input) { this->update(input.total, input.failed); }
 
-  void operator()(int t, int f) {
-    this->update(t, f);
-  }
+  void operator()(int t, int f) { this->update(t, f); }
 
-  void operator()(const Stats &input) {
-    this->update(input);
-  }
+  void operator()(const Stats &input) { this->update(input); }
 
   void reset() {
     total = 0;
@@ -92,45 +84,77 @@ public:
   }
 };
 
-template <typename OutType>
-class Output {
-protected:
-  OutType output{};
+// template <typename OutType>
+// class Output {
+// protected:
+//  OutType output{};
+// public:
+//  Output() = default;
+//  virtual ~Output() = default;
+//  explicit Output(OutType output): output{move(output)} {};
+//  virtual string str() const = 0;
+//};
+
+class BaseOutput {
 public:
-  Output() = default;
-  virtual ~Output() = default;
-  explicit Output(OutType output): output{move(output)} {};
+  BaseOutput() = default;
+  virtual ~BaseOutput() = default;
   virtual string str() const = 0;
 };
 
-template <typename Input, typename Output>
-class Evaluator {
-  vector<Input> input;
-  vector<Output> expected, outcome;
-private:
+class BaseInput {
+public:
+  BaseInput() = default;
+  virtual ~BaseInput() = default;
+  virtual string str() const = 0;
+  virtual BaseOutput &validate() const = 0;
+};
 
+template <typename Input, typename Output> class Evaluator {
+  string name;
+  //  const vector<BaseInput> &input;
+  //  const vector<BaseOutput> &expected, outcome;
+  const vector<Input> &input;
+  const vector<Output> &expected;
+  vector<Output> outcome;
+
+private:
 public:
   Evaluator() = delete;
 
-  Evaluator(vector<Input> input, vector<Output> expected):
-  input{input}, expected{expected} {
+  Evaluator(string name, const vector<Input> &input,
+            const vector<Output> &expected)
+      : name{name}, input{input}, expected{expected} {
     if (input.size() != expected.size())
       throw runtime_error("Input and Expected have different sizes!");
   }
 
-  void invoke(Output (*func)(Input)){
-    transform(input.begin(), input.end(), back_inserter(outcome), func);
+  void generate() {
+    transform(input.begin(), input.end(), back_inserter(outcome),
+              [](const Input &ele) { return ele.validate(); });
 
-    for (const auto& ele: outcome )
-      cout << ele.str() << endl;
+    //    for (const auto& ele: outcome )
+    //      cout << ele.str() << endl;
   }
+
+  //  Stats verify(bool verbose=false){
+  //    Stats result;
+  //    for (auto outcome_it = outcome.begin(), expected_it = expected.begin();
+  //         outcome_it != outcome.end; ++outcome_it, ++expected_it){
+  //      ++result;
+  //      if (*outcome_it != *expected_it)
+  //        result.addFailure();
+  //    }
+
+  //    return result;
+  //  }
 };
 
 inline const string passed_str{"[ PASSED ]"};
 inline const string failed_str{"[~FAILED~]"};
 
-inline string
-gen_framed(const string &message, size_t width = 80, char frame = '#') {
+inline string gen_framed(const string &message, size_t width = 80,
+                         char frame = '#') {
 
   string result{string(width, frame) + "\n"};
   string frame_string = string(3, frame);
@@ -152,7 +176,7 @@ inline string gen_pretty(const string &message, size_t width = 80) {
 }
 
 inline string gen_summary(const Stats &stats, string type = "Evaluation",
-        bool framed = false) {
+                          bool framed = false) {
   sstream message;
 
   message << type;
@@ -164,9 +188,8 @@ inline string gen_summary(const Stats &stats, string type = "Evaluation",
     message << " succeeded in all " << stats.size() << " cases!";
 
   return framed ? gen_framed(message.str()) : message.str();
-
 }
 
 } // namespace Evaluation
 
-} //namespace AGizmo
+} // namespace AGizmo

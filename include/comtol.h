@@ -39,10 +39,9 @@ using std::end;
 using std::inserter;
 
 using std::accumulate;
-using std::boyer_moore_horspool_searcher;
-using std::boyer_moore_searcher;
+
 using std::count;
-using std::default_searcher;
+
 using std::find_if_not;
 using std::isspace;
 using std::runtime_error;
@@ -50,8 +49,6 @@ using std::search;
 using std::to_string;
 using std::unique;
 
-template <typename It> using bmhs = boyer_moore_horspool_searcher<It>;
-template <typename It> using defs = default_searcher<It>;
 using vec_str = vector<string>;
 using opt_int = optional<int>;
 using opt_str = optional<string>;

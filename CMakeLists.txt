@@ -24,7 +24,7 @@ install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include
 
 include(CTest)
 
-add_executable(BasicTest test/src/basic_test.cpp include/strings.h)
+add_executable(BasicTest test/src/basic_test.cpp test/include/basic_test.hpp)
 target_include_directories(BasicTest
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
