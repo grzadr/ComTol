@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -29,8 +30,14 @@ using std::size_t;
 using std::string;
 using std::to_string;
 using sstream = std::stringstream;
+using std::left;
+using std::right;
+using std::setfill;
+using std::setw;
 
 using std::transform;
+
+using std::log10;
 
 // using pair_int = pair<int, int>;
 using pair_str = pair<string, string>;
@@ -42,11 +49,12 @@ using StringFormat::str_frame;
 namespace Evaluation {
 
 class Stats {
-private:
+ private:
   int total{0}, failed{0};
 
-public:
+ public:
   Stats() = default;
+  Stats(int total, int failed = 0) : total{total}, failed{0} {}
 
   Stats &operator++() {
     ++total;
@@ -95,59 +103,73 @@ public:
 //  virtual string str() const = 0;
 //};
 
-class BaseOutput {
-public:
-  BaseOutput() = default;
-  virtual ~BaseOutput() = default;
+// template <class Value>
+// class BaseOutput {
+// protected:
+//  Value values;
+
+// public:
+//  virtual ~BaseOutput() = default;
+//  virtual string str() const = 0;
+//};
+
+class BaseTest {
+ protected:
+  bool status;
+
+ public:
+  BaseTest() = default;
+  virtual ~BaseTest() = default;
   virtual string str() const = 0;
+  friend ostream &operator<<(ostream &stream, const BaseTest &item) {
+    return stream << item.str();
+  }
+
+  virtual void validate() = 0;
+  bool valid() const { return status; }
+  operator int() const { return this->valid(); }
 };
 
-class BaseInput {
-public:
-  BaseInput() = default;
-  virtual ~BaseInput() = default;
-  virtual string str() const = 0;
-  virtual BaseOutput &validate() const = 0;
-};
-
-template <typename Input, typename Output> class Evaluator {
+template <class Test>
+class Evaluator {
+ private:
+  const string passed_str{"[ PASSED ]"};
+  const string failed_str{"<<FAILED>>"};
   string name;
-  //  const vector<BaseInput> &input;
-  //  const vector<BaseOutput> &expected, outcome;
-  const vector<Input> &input;
-  const vector<Output> &expected;
-  vector<Output> outcome;
+  const vector<Test> &tests;
+  Stats result;
 
-private:
-public:
+ public:
   Evaluator() = delete;
+  ~Evaluator() = default;
+  Evaluator(string name, const vector<Test> &tests, Stats result = {})
+      : name{name}, tests{tests}, result{result} {}
 
-  Evaluator(string name, const vector<Input> &input,
-            const vector<Output> &expected)
-      : name{name}, input{input}, expected{expected} {
-    if (input.size() != expected.size())
-      throw runtime_error("Input and Expected have different sizes!");
+  Stats verify(sstream &message) {
+    auto number_width = static_cast<int>(log10(tests.size())) + 1;
+
+    for (const auto &test : tests) {
+      message << "Test " << setw(number_width) << setfill('0') << right
+              << ++result << " ";
+      result.addFailure(!test);
+
+      message << setfill(' ') << setw(76 - number_width - 2);
+
+      if (test)
+        message << passed_str << "\n";
+      else
+        message << failed_str << "\nFunction: " << name << test << "\n";
+    }
+
+    return result;
   }
 
-  void generate() {
-    transform(input.begin(), input.end(), back_inserter(outcome),
-              [](const Input &ele) { return ele.validate(); });
+  Stats verify() {
+    for_each(tests.begin(), tests.end(),
+             [this](const Test &test) { this->result.addFailure(test); });
 
-    //    for (const auto& ele: outcome )
-    //      cout << ele.str() << endl;
+    return result;
   }
-
-  //  Stats verify(bool verbose=false){
-  //    Stats result;
-  //    for (auto outcome_it = outcome.begin(), expected_it = expected.begin();
-  //         outcome_it != outcome.end; ++outcome_it, ++expected_it){
-  //      ++result;
-  //      if (*outcome_it != *expected_it)
-  //        result.addFailure();
-  //    }
-
-  //    return result;
-  //  }
 };
 
 inline const string passed_str{"[ PASSED ]"};
@@ -155,7 +177,6 @@ inline const string failed_str{"[~FAILED~]"};
 
 inline string gen_framed(const string &message, size_t width = 80,
                          char frame = '#') {
-
   string result{string(width, frame) + "\n"};
   string frame_string = string(3, frame);
 
@@ -165,8 +186,7 @@ inline string gen_framed(const string &message, size_t width = 80,
 }
 
 inline string gen_pretty(const string &message, size_t width = 80) {
-  if (width % 2)
-    ++width;
+  if (width % 2) ++width;
 
   string frame = string(width / 2, '<') + string(width / 2, '>');
   string result{frame};
@@ -190,6 +210,6 @@ inline string gen_summary(const Stats &stats, string type = "Evaluation",
   return framed ? gen_framed(message.str()) : message.str();
 }
 
-} // namespace Evaluation
+}  // namespace Evaluation
 
-} // namespace AGizmo
+}  // namespace AGizmo

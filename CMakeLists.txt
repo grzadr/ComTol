@@ -31,7 +31,7 @@ target_include_directories(BasicTest
         ${CMAKE_CURRENT_SOURCE_DIR}/test/include
 )
 target_compile_features(BasicTest PRIVATE cxx_std_17)
-target_compile_options(BasicTest PRIVATE -march=x86-64 -mtune=native -O3 -g0
+target_compile_options(BasicTest PRIVATE -g -march=x86-64 -mtune=native -O3 -g0
 				       -pipe -fPIE -fPIC -fstack-protector-strong -fno-plt
 				       -fvisibility=hidden -Werror -Wall -pthread)
 

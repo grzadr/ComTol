@@ -4,11 +4,14 @@
 #include "basic_test.hpp"
 
 #include <iostream>
+#include <memory>
 
 #include <numeric>
 
 using std::cout;
 using std::endl;
+
+using std::unique_ptr;
 
 using namespace StringFormat;
 // using Evaluation::Stats;
@@ -22,125 +25,120 @@ using std::move;
 using std::next;
 using std::to_string;
 
-using std::pair;
-using pair_bool = pair<bool, bool>;
-using pair_char = pair<char, char>;
-using pair_int = pair<int, int>;
+XORWithBool::XORWithBool(Input input, Output expected)
+    : input{input}, expected{expected} {
+  validate();
+}
 
-template <typename It> Stats test_XOR(It begin, It end, sstream &message) {
-  Stats result;
-
-  for (; begin != end; ++begin) {
-    const auto [input, expected] = *begin;
-    const auto outcome = Basic::XOR(input.first, input.second);
-    const auto passed = outcome == expected;
-
-    message << ++result << ") XOR(" << std::boolalpha << input.first << ", "
-            << std::boolalpha << input.second << ") -> ";
-
-    result.addFailure(!passed);
-
-    if (passed)
-      message << outcome << " == " << expected << " " << passed_str << "\n";
-    else
-      message << outcome << " != " << expected << " " << failed_str << "\n";
-  }
-
-  message << "\n";
-
-  return result;
+XORWithChar::XORWithChar(Input input, Output expected)
+    : input{input}, expected{expected} {
+  validate();
 }
 
 Stats check_XOR(bool verbose = false) {
   Stats result;
   sstream message;
 
-  message << "~~~ Checking Basic::XOR\n\nBoolean Test:\n";
+  message << "~~~ Checking Basic::XOR\n";
 
-  vector<pair<pair_bool, bool>> test_set{
+  message << "\nBoolean Test:\n";
+
+  vector<XORWithBool> set_xor_with_bool{
       {{false, false}, false},
       {{true, false}, true},
       {{false, true}, true},
       {{true, true}, false},
   };
 
-  result.update(test_XOR(test_set.begin(), test_set.end(), message));
+  Evaluator xor_with_bool("Basic::XOR", set_xor_with_bool);
+  result(xor_with_bool.verify(message));
 
-  vector<pair<pair_char, bool>> test_set_char{
+  message << "\nChar Test:\n";
+
+  vector<XORWithChar> set_xor_with_char{
       {{0, 0}, false},
       {{0, '+'}, true},
       {{'+', 0}, true},
       {{'+', '+'}, false},
   };
 
-  message << "Char Test:\n";
-  result.update(test_XOR(test_set_char.begin(), test_set_char.end(), message));
+  Evaluator xor_with_char("Basic::XOR", set_xor_with_char);
+  result(xor_with_char.verify(message));
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  message << "\n";
+
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::XOR") << endl;
 
   return result;
 }
 
+SplitVectorWithVectorSep::SplitVectorWithVectorSep(Input input, Sep sep,
+                                                   Output expected)
+    : input{input}, sep{sep}, expected{expected} {
+  validate();
+}
+
+SplitVectorWithSep::SplitVectorWithSep(Input input, Sep sep, Output expected)
+    : input{input}, sep{sep}, expected{expected} {
+  validate();
+}
+
 Stats check_split(bool verbose = false) {
   Stats result;
   sstream message;
 
-  cout << "\n~~~ Checking Basic::split\n\nInteger Test:\n";
-  message << "\n~~~ Checking Basic::split\n\nInteger Test:\n";
+  message << "\n~~~ Checking Basic::split\n";
 
-  struct Input {
-    const PrintableVector<int> input{};
-    const PrintableVector<int> sep{};
+  message << "\nTesting vector<int> with int separator:\n";
 
-    string str() const noexcept {
-      return "(" + input.str() + ", " + sep.str() + ")";
-    }
-
-    NestedVector<int> validate() const {
-      NestedVector<int> result{};
-      Basic::split<PrintableVector<int>, defs>(input.begin(), input.end(),
-                                               sep.begin(), sep.end(),
-                                               back_inserter(result.values));
-
-      return result;
-    }
+  vector<SplitVectorWithSep> tests_int = {
+      {{}, 2, {{}}},
+      {{1, 2, 3}, 4, {{1, 2, 3}}},
+      {{1, 1, 2, 3, 3}, 2, {{1, 1}, {3, 3}}},
+      {{1, 1, 2}, 2, {{1, 1}, {}}},
+      {{2, 3, 3}, 2, {{}, {3, 3}}},
+      {{2}, 2, {{}, {}}},
+      {{1, 1, 2, 3, 3, 2}, 2, {{1, 1}, {3, 3}, {}}},
+      {{2, 1, 1, 2, 3, 3}, 2, {{}, {1, 1}, {3, 3}}},
+      {{2, 1, 1, 2, 3, 3, 2}, 2, {{}, {1, 1}, {3, 3}, {}}},
+      {{2, 2}, 2, {{}, {}, {}}},
   };
 
-  const vector<Input> input = {
-      {{}, {}},
-      {{1, 2, 3}, {}},
-      {{1, 2, 3}, {2}},
-      {{1, 2, 2, 3}, {2}},
+  Evaluator test_split_int("Basic::split", tests_int);
+  result(test_split_int.verify(message));
+
+  message << "\nTesting vector<int> with "
+             "vector<int> separator:\n";
+
+  vector<SplitVectorWithVectorSep> tests = {
+      {{}, {}, {{}}},
+      {{1, 2, 3}, {}, {{1, 2, 3}}},
+      {{1, 2, 3}, {4}, {{1, 2, 3}}},
+      {{1, 1, 2, 3, 3}, {2}, {{1, 1}, {3, 3}}},
+      {{1, 1, 2}, {2}, {{1, 1}, {}}},
+      {{2, 3, 3}, {2}, {{}, {3, 3}}},
+      {{2}, {2}, {{}, {}}},
+      {{1, 1, 2, 3, 3, 2}, {2}, {{1, 1}, {3, 3}, {}}},
+      {{2, 1, 1, 2, 3, 3}, {2}, {{}, {1, 1}, {3, 3}}},
+      {{2, 1, 1, 2, 3, 3, 2}, {2}, {{}, {1, 1}, {3, 3}, {}}},
+      {{1, 1, 2, 2, 3, 3}, {2, 2}, {{1, 1}, {3, 3}}},
+      {{2, 2, 1, 1, 2, 2, 3, 3, 2, 2}, {2, 2}, {{}, {1, 1}, {3, 3}, {}}},
+      {{2, 2, 1, 1, 2, 2, 3, 3}, {2, 2}, {{}, {1, 1}, {3, 3}}},
+      {{1, 1, 2, 2, 3, 3, 2, 2}, {2, 2}, {{1, 1}, {3, 3}, {}}},
+      {{1, 1, 2, 2}, {2, 2}, {{1, 1}, {}}},
+      {{2, 2, 3, 3}, {2, 2}, {{}, {3, 3}}},
+      {{2, 2}, {2, 2}, {{}, {}}},
+      {{2, 2}, {2}, {{}, {}, {}}},
   };
 
-  const vector<NestedVector<int>> expected = {{{}},
-                                              {{
-                                                  {1, 2, 3},
-                                              }},
-                                              {{{1}, {3}}},
-                                              {{{1}, {}, {3}}}
+  Evaluator test_split("Basic::split", tests);
+  result(test_split.verify(message));
 
-  };
+  message << "\n";
 
-  Evaluator test_split("Basic::split", input, expected);
-  test_split.generate();
-
-  //  const vector<SplitOutput> expected {
-  //          {{}},
-  //          {{{1,2,3}, }},
-  //          {{{1}, {3}}},
-  //          {{{1}, {}, {3}}}
-  //  };
-
-  //  Evaluator evaluator{input, expected};
-
-  //  evaluator.invoke(test_split);
-
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::split function")
        << "\n"
@@ -687,7 +685,6 @@ Stats check_split(bool verbose = false) {
 // }
 
 int perform_tests(bool verbose) {
-
   Stats result;
 
   for (int i = 0; i < 2; ++i) {
@@ -696,6 +693,7 @@ int perform_tests(bool verbose) {
 
     cout << gen_framed("Evaluating Common Tools") << "\n\n";
 
+    cout << ">>> Checking Basic functions" << endl;
     result(check_XOR(verbose));
     result(check_split(verbose));
 
