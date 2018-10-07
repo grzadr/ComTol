@@ -49,10 +49,10 @@ using StringFormat::str_frame;
 namespace Evaluation {
 
 class Stats {
-private:
+ private:
   int total{0}, failed{0};
 
-public:
+ public:
   Stats() = default;
   Stats(int total, int failed = 0) : total{total}, failed{0} {}
 
@@ -84,6 +84,7 @@ public:
   int getFailed() const { return this->failed; }
   bool hasFailed() const { return this->failed != 0; }
   void addFailure(int f = 1) { failed += f; }
+  //  void addFailure(bool status = false) { failed += status; }
 
   double getRatio() const { return failed / static_cast<double>(total); }
 
@@ -92,54 +93,42 @@ public:
   }
 };
 
-// template <typename OutType>
-// class Output {
-// protected:
-//  OutType output{};
-// public:
-//  Output() = default;
-//  virtual ~Output() = default;
-//  explicit Output(OutType output): output{move(output)} {};
-//  virtual string str() const = 0;
-//};
-
-// template <class Value>
-// class BaseOutput {
-// protected:
-//  Value values;
-
-// public:
-//  virtual ~BaseOutput() = default;
-//  virtual string str() const = 0;
-//};
-
+template <class Input, class Output>
 class BaseTest {
-protected:
+ protected:
+  const Input input;
+  const Output expected;
+  Output outcome;
   bool status;
 
-public:
+ public:
   BaseTest() = default;
+  BaseTest(Input input, Output expected) : input{input}, expected{expected} {}
   virtual ~BaseTest() = default;
-  virtual string str() const = 0;
+  virtual string str() const noexcept = 0;
   friend ostream &operator<<(ostream &stream, const BaseTest &item) {
     return stream << item.str();
   }
 
   virtual bool validate() = 0;
-  bool valid() const { return status; }
-  operator int() const { return this->valid(); }
-  bool operator() const { return validate(); }
+  bool setStatus(bool status) {
+    this->status = status;
+    return this->status;
+  }
+  bool isValid() const { return status; }
+  operator int() const { return this->isValid(); }
 };
 
-template <class Test> class Evaluator {
-private:
+template <class Test>
+class Evaluator {
+ private:
   const string passed_str{"[ PASSED ]"};
   const string failed_str{"<<FAILED>>"};
   string name;
   const vector<Test> &tests;
   Stats result;
 
-public:
+ public:
   Evaluator() = delete;
   ~Evaluator() = default;
   Evaluator(string name, const vector<Test> &tests, Stats result = {})
@@ -150,30 +139,22 @@ public:
 
     for (const auto &test : tests) {
       message << "Test " << setw(number_width) << setfill('0') << right
-              << ++result << " ";
-      result.addFailure(!test);
-
-      message << setfill(' ') << setw(76 - number_width - 2);
+              << ++result << " " << setfill(' ') << setw(76 - number_width - 2);
 
       if (test)
         message << passed_str << "\n";
-      else
+      else {
+        result.addFailure();
         message << failed_str << "\nFunction: " << name << test << "\n";
+      }
     }
-
-    return result;
-  }
-
-  Stats verify() {
-    for_each(tests.begin(), tests.end(),
-             [this](const Test &test) { this->result.addFailure(test); });
 
     return result;
   }
 };
 
-inline const string passed_str{"[ PASSED ]"};
-inline const string failed_str{"[~FAILED~]"};
+// inline const string passed_str{"[ PASSED ]"};
+// inline const string failed_str{"[~FAILED~]"};
 
 inline string gen_framed(const string &message, size_t width = 80,
                          char frame = '#') {
@@ -186,8 +167,7 @@ inline string gen_framed(const string &message, size_t width = 80,
 }
 
 inline string gen_pretty(const string &message, size_t width = 80) {
-  if (width % 2)
-    ++width;
+  if (width % 2) ++width;
 
   string frame = string(width / 2, '<') + string(width / 2, '>');
   string result{frame};
@@ -211,6 +191,6 @@ inline string gen_summary(const Stats &stats, string type = "Evaluation",
   return framed ? gen_framed(message.str()) : message.str();
 }
 
-} // namespace Evaluation
+}  // namespace Evaluation
 
-} // namespace AGizmo
+}  // namespace AGizmo

@@ -1,21 +1,24 @@
 #pragma once
 
-#include <vector>
-#include <stdexcept>
 #include <algorithm>
 #include <functional>
+#include <iterator>
+#include <stdexcept>
+#include <vector>
 
 namespace AGizmo {
 
 using std::pair;
-using std::vector;
 using std::runtime_error;
+using std::vector;
 
-using std::default_searcher;
 using std::boyer_moore_horspool_searcher;
 using std::boyer_moore_searcher;
-template <typename It> using bmhs = boyer_moore_horspool_searcher<It>;
-template <typename It> using defs = default_searcher<It>;
+using std::default_searcher;
+template <typename It>
+using bmhs = boyer_moore_horspool_searcher<It>;
+template <typename It>
+using defs = default_searcher<It>;
 
 namespace Basic {
 
@@ -49,15 +52,14 @@ template <typename OutType, template <class> class Comp, typename InIt,
           typename OutIt, typename SepIt>
 inline OutIt constexpr split(InIt query, const InIt &query_end, SepIt sep,
                              SepIt sep_end, OutIt output) {
-  auto dist = distance(sep, sep_end);
+  const auto dist = distance(sep, sep_end);
 
   if (!dist) {
     *output++ = OutType(query, query_end);
     return output;
   }
 
-  if (dist == 1)
-    return split<OutType>(query, query_end, *sep, output);
+  if (dist == 1) return split<OutType>(query, query_end, *sep, output);
 
   auto found(search(query, query_end, Comp<SepIt>(sep, sep_end)));
 
@@ -66,6 +68,37 @@ inline OutIt constexpr split(InIt query, const InIt &query_end, SepIt sep,
     query = next(found, dist);
     found = (search(query, query_end, Comp<SepIt>(sep, sep_end)));
   } while (prev(query, dist) != query_end);
+
+  return output;
+}
+
+template <typename OutType, typename InIt, typename OutIt>
+inline OutIt constexpr segment(InIt query, const InIt &query_end, OutIt output,
+                               int length) {
+  if (!length || distance(query, query_end) <= length)
+    *output++ = OutType(query, query_end);
+  else {
+    do {
+      *output++ = OutType(query, next(query, length));
+      query = next(query, length);
+    } while (distance(query, query_end) > length);
+
+    *output++ = OutType(query, query_end);
+  }
+
+  return output;
+}
+
+template <typename Type, typename InIt, typename OutIt>
+inline OutIt merge(InIt value, const InIt value_end, OutIt output, Type sep) {
+  if (value == value_end) return output;
+
+  *output++ = *value;
+
+  for_each(next(value), value_end, [&output, sep](Type ele) {
+    *output++ = sep;
+    *output++ = ele;
+  });
 
   return output;
 }
@@ -102,5 +135,5 @@ OutIt constexpr mapify(KeytIt kbegin, KeytIt kend, ValueIt vbegin, ValueIt vend,
   return output;
 }
 
-} // namespace Basic
-} // namespace AGizmos
+}  // namespace Basic
+}  // namespace AGizmo

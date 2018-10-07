@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(pyAGizmo VERSION 0.1 LANGUAGES CXX)
 
-set(CMAKE_BUILD_TYPE Release)
+#set(CMAKE_BUILD_TYPE Release)
 
 add_subdirectory(pybind11)
 pybind11_add_module(pyAGizmo src/pyagizmo.cpp)

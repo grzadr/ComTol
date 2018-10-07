@@ -1,7 +1,8 @@
 #pragma once
 
-#include "evaluation.h"
-#include "strings.h"
+#include "agizmo/basic.h"
+#include "agizmo/evaluation.h"
+#include "agizmo/strings.h"
 
 #include <sstream>
 
@@ -10,6 +11,7 @@ using sstream = std::stringstream;
 using namespace AGizmo;
 using namespace Evaluation;
 using namespace StringFormat;
+using namespace StringForm;
 
 using std::pair;
 using pair_bool = pair<bool, bool>;
@@ -94,17 +96,29 @@ struct NestedVector {
   }
 };
 
-class XORWithBool : public BaseTest {
- private:
-  using Input = pair_bool;
-  using Output = bool;
+template <class Type>
+struct PrintableOptional {
+  std::optional<Type> value{std::nullopt};
 
-  const Input input;
-  const Output expected;
-  Output outcome;
+  string str() const noexcept {
+    return value == std::nullopt ? "std::nullopt" : to_string(*value);
+  }
 
+  friend ostream &operator<<(ostream &stream, const PrintableOptional &item) {
+    return stream << item.str();
+  }
+
+  PrintableOptional() = default;
+  PrintableOptional(const std::optional<Type> value) : value{value} {}
+
+  bool operator==(const PrintableOptional<Type> &other) {
+    return this->value == other.value;
+  }
+};
+
+class XORWithBool : public BaseTest<pair_bool, bool> {
  public:
-  XORWithBool(Input input, Output expected);
+  XORWithBool(pair_bool input, bool expected);
 
   string str() const noexcept {
     return "(" + to_string(input.first) + ", " + to_string(this->input.second) +
@@ -112,23 +126,15 @@ class XORWithBool : public BaseTest {
            "\nExpected: " + to_string(expected);
   }
 
-  void validate() {
+  bool validate() {
     outcome = Basic::XOR(input.first, input.second);
-    this->status = outcome == expected;
+    return this->setStatus(outcome == expected);
   }
 };
 
-class XORWithChar : public BaseTest {
- private:
-  using Input = pair_char;
-  using Output = bool;
-
-  const Input input;
-  const Output expected;
-  Output outcome;
-
+class XORWithChar : public BaseTest<pair_char, bool> {
  public:
-  XORWithChar(Input input, Output expected);
+  XORWithChar(pair_char input, bool expected);
 
   string str() const noexcept {
     return "(" + to_string(input.first) + ", " + to_string(this->input.second) +
@@ -136,61 +142,182 @@ class XORWithChar : public BaseTest {
            "\nExpected: " + to_string(expected);
   }
 
-  void validate() {
+  bool validate() {
     outcome = Basic::XOR(input.first, input.second);
-    this->status = outcome == expected;
+    return this->setStatus(outcome == expected);
   }
 };
 
-class SplitVectorWithVectorSep : public BaseTest {
- private:
-  using Input = PrintableVector<int>;
-  using Sep = Input;
-  using Output = NestedVector<int>;
-
-  const Input input;
+template <class Sep>
+struct InputVectorSep {
+  const PrintableVector<int> elements;
   const Sep sep;
-  const Output expected;
-  Output outcome;
+};
 
+class SplitVectorWithVectorSep
+    : public BaseTest<InputVectorSep<PrintableVector<int>>, NestedVector<int>> {
  public:
-  SplitVectorWithVectorSep(Input input, Sep sep, Output expected);
+  SplitVectorWithVectorSep(InputVectorSep<PrintableVector<int>> input,
+                           NestedVector<int> expected);
 
   string str() const noexcept {
-    return "(" + this->input.str() + ", " + sep.str() +
+    return "(" + this->input.elements.str() + ", " + input.sep.str() +
            ")\n Outcome: " + outcome.str() + "\nExpected: " + expected.str();
   }
 
-  void validate() {
-    Basic::split<Input, defs>(this->input.begin(), this->input.end(),
-                              this->sep.begin(), this->sep.end(),
-                              back_inserter(this->outcome.values));
-    this->status = outcome == expected;
+  bool validate() {
+    Basic::split<PrintableVector<int>, defs>(
+        this->input.elements.begin(), this->input.elements.end(),
+        this->input.sep.begin(), this->input.sep.end(),
+        back_inserter(this->outcome.values));
+    return this->setStatus(outcome == expected);
   }
 };
 
-class SplitVectorWithSep : public BaseTest {
- private:
-  using Input = PrintableVector<int>;
-  using Sep = int;
-  using Output = NestedVector<int>;
-
-  const Input input;
-  const Sep sep;
-  const Output expected;
-  Output outcome;
-
+class SplitVectorWithSep
+    : public BaseTest<InputVectorSep<int>, NestedVector<int>> {
  public:
-  SplitVectorWithSep(Input input, Sep sep, Output expected);
+  SplitVectorWithSep(InputVectorSep<int> input, NestedVector<int> expected);
 
   string str() const noexcept {
-    return "(" + this->input.str() + ", " + to_string(sep) +
+    return "(" + this->input.elements.str() + ", " + to_string(input.sep) +
            ")\n Outcome: " + outcome.str() + "\nExpected: " + expected.str();
   }
 
-  void validate() {
-    Basic::split<Input>(this->input.begin(), this->input.end(), this->sep,
-                        back_inserter(this->outcome.values));
-    this->status = outcome == expected;
+  bool validate() {
+    Basic::split<PrintableVector<int>>(
+        this->input.elements.begin(), this->input.elements.end(),
+        this->input.sep, back_inserter(this->outcome.values));
+    return this->setStatus(outcome == expected);
+  }
+};
+
+struct SegmentInput {
+  PrintableVector<int> elements;
+  int length;
+};
+
+class SegmentVector : public BaseTest<SegmentInput, NestedVector<int>> {
+ public:
+  SegmentVector(SegmentInput input, NestedVector<int> expected);
+
+  bool validate() {
+    Basic::segment<PrintableVector<int>>(
+        input.elements.begin(), input.elements.end(),
+        back_inserter(this->outcome.values), input.length);
+    return this->setStatus(outcome == expected);
+  }
+
+  string str() const noexcept {
+    return "(" + this->input.elements.str() + ", " + to_string(input.length) +
+           ")\n Outcome: " + outcome.str() + "\nExpected: " + expected.str();
+  }
+};
+
+class MergeVector : public BaseTest<InputVectorSep<int>, PrintableVector<int>> {
+ public:
+  MergeVector(InputVectorSep<int> input, PrintableVector<int> expected);
+  string str() const noexcept {
+    return "(" + this->input.elements.str() + ", " + to_string(input.sep) +
+           ")\n Outcome: " + outcome.str() + "\nExpected: " + expected.str();
+  }
+  bool validate() {
+    Basic::merge(input.elements.begin(), input.elements.cend(),
+                 back_inserter(outcome.value), input.sep);
+    return this->setStatus(outcome == expected);
+  }
+};
+
+class OnlyDigits : public BaseTest<string, bool> {
+ public:
+  OnlyDigits(string input, bool expected);
+
+  string str() const noexcept {
+    return "(" + this->input + ")\n Outcome: " + to_string(outcome) +
+           "\nExpected: " + to_string(expected);
+  }
+
+  bool validate() {
+    outcome = StringFormat::only_digits(input);
+    return this->setStatus(outcome == expected);
+  }
+};
+
+class StrToInt : public BaseTest<string, PrintableOptional<int>> {
+ public:
+  StrToInt(string input, PrintableOptional<int> expected);
+
+  string str() const noexcept {
+    return "(" + this->input + ")\n Outcome: " + outcome.str() +
+           "\nExpected: " + expected.str();
+  }
+
+  bool validate() {
+    outcome = PrintableOptional(StringFormat::str_to_int(input));
+    return this->setStatus(outcome == expected);
+  }
+};
+
+class StrCleanEnds : public BaseTest<string, string> {
+ public:
+  StrCleanEnds(string input, string expected);
+
+  string str() const noexcept {
+    return "(" + this->input + ")\n Outcome: " + outcome +
+           "\nExpected: " + expected;
+  }
+
+  bool validate() {
+    outcome = StringFormat::str_clean_ends(input);
+    return this->setStatus(outcome == expected);
+  }
+};
+
+struct StrCleanWithCharsInput {
+  string query, chars;
+};
+
+class StrCleanEndsWithChars : public BaseTest<StrCleanWithCharsInput, string> {
+ public:
+  StrCleanEndsWithChars(StrCleanWithCharsInput input, string expected);
+
+  string str() const noexcept {
+    return "(" + this->input.query + ", " + input.chars +
+           ")\n Outcome: " + outcome + "\nExpected: " + expected;
+  }
+
+  bool validate() {
+    outcome = StringFormat::str_clean_ends(input.query, input.chars);
+    return this->setStatus(outcome == expected);
+  }
+};
+
+class StrClean : public BaseTest<string, string> {
+ public:
+  StrClean(string input, string expected);
+
+  string str() const noexcept {
+    return "(" + this->input + ")\n Outcome: " + outcome +
+           "\nExpected: " + expected;
+  }
+
+  bool validate() {
+    outcome = StringFormat::str_clean(input);
+    return this->setStatus(outcome == expected);
+  }
+};
+
+class StrCleanWithChars : public BaseTest<StrCleanWithCharsInput, string> {
+ public:
+  StrCleanWithChars(StrCleanWithCharsInput input, string expected);
+
+  string str() const noexcept {
+    return "(" + this->input.query + ", " + input.chars +
+           ")\n Outcome: " + outcome + "\nExpected: " + expected;
+  }
+
+  bool validate() {
+    outcome = StringFormat::str_clean(input.query, true, input.chars);
+    return this->setStatus(outcome == expected);
   }
 };
