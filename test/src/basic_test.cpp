@@ -1,5 +1,6 @@
 #include "basic_test.hpp"
 
+#include <fstream>
 #include <iostream>
 #include <memory>
 
@@ -11,11 +12,8 @@ using std::endl;
 using std::unique_ptr;
 
 using namespace StringFormat;
-// using Evaluation::Stats;
-// using Evaluation::passed_str;
-// using Evaluation::failed_str;
-
-using StringFormat::str_frame;
+using namespace StringCompose;
+using namespace StringDecompose;
 
 using std::accumulate;
 using std::move;
@@ -54,7 +52,8 @@ Stats check_XOR(bool verbose = false) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose) cout << message.str();
+  if (result.hasFailed() || verbose)
+    cout << message.str();
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::XOR") << endl;
 
@@ -114,7 +113,8 @@ Stats check_split(bool verbose = false) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose) cout << message.str();
+  if (result.hasFailed() || verbose)
+    cout << message.str();
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::split function")
        << endl;
@@ -144,7 +144,8 @@ Stats check_segment(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose) cout << message.str();
+  if (result.hasFailed() || verbose)
+    cout << message.str();
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::segment function")
        << endl;
@@ -170,7 +171,8 @@ Stats check_merge(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose) cout << message.str();
+  if (result.hasFailed() || verbose)
+    cout << message.str();
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::merge function")
        << endl;
@@ -195,7 +197,8 @@ Stats check_only_digits(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose) cout << message.str();
+  if (result.hasFailed() || verbose)
+    cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::only_digits function")
@@ -225,7 +228,8 @@ Stats check_str_to_int(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose) cout << message.str();
+  if (result.hasFailed() || verbose)
+    cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_to_int function")
@@ -272,7 +276,8 @@ Stats check_str_clean_ends(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose) cout << message.str();
+  if (result.hasFailed() || verbose)
+    cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_clean_ends function")
@@ -315,10 +320,174 @@ Stats check_str_clean(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose) cout << message.str();
+  if (result.hasFailed() || verbose)
+    cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_clean function")
+       << endl;
+
+  return result;
+}
+
+Stats check_str_join(bool verbose) {
+  Stats result;
+  sstream message;
+
+  message << "\n~~~ Checking StringFormat::str_join\n"
+          << "\nTesting strings with default parameters:\n";
+
+  vector<StrJoin> tests = {
+      {{1, 2}, "1-2"},
+      {{}, ""},
+      {{1}, "1"},
+  };
+
+  Evaluator test_join("StringFormat::str_join", tests);
+
+  result(test_join.verify(message));
+
+  message << "\n";
+
+  if (result.hasFailed() || verbose)
+    cout << message.str();
+
+  cout << "~~~ "
+       << gen_summary(result, "Checking StringFormat::str_join function")
+       << endl;
+
+  return result;
+}
+
+Stats check_str_reverse(bool verbose) {
+  Stats result;
+  sstream message;
+
+  message << "\n~~~ Checking StringFormat::str_reverse\n"
+          << "\nTesting strings with default parameters:\n";
+
+  vector<StrReverse> tests = {
+      {"", ""},
+      {"1-2", "2-1"},
+      {"1", "1"},
+  };
+
+  Evaluator test_reverse("StringFormat::str_join", tests);
+
+  result(test_reverse.verify(message));
+
+  message << "\n";
+
+  if (result.hasFailed() || verbose)
+    cout << message.str();
+
+  cout << "~~~ "
+       << gen_summary(result, "Checking StringFormat::str_reverse function")
+       << endl;
+
+  return result;
+}
+
+Stats check_str_split(bool verbose) {
+  Stats result;
+  sstream message;
+
+  message << "\n~~~ Checking StringFormat::str_split\n"
+          << "\nTesting strings with default parameters:\n";
+
+  vector<StrSplit> tests = {
+      {{"", ""}, {""}},
+      {{"", "_"}, {""}},
+      {{"ABC_DEF", ""}, {"ABC_DEF"}},
+      {{"ABC_DEF", "_"}, {"ABC", "DEF"}},
+      {{"_ABC_DEF", "_"}, {"", "ABC", "DEF"}},
+      {{"ABC_DEF_", "_"}, {"ABC", "DEF", ""}},
+      {{"_ABC_DEF_", "_"}, {"", "ABC", "DEF", ""}},
+      {{"_ABC__DEF_", "_"}, {"", "ABC", "", "DEF", ""}},
+      {{"ABC_DEF", "__"}, {"ABC_DEF"}},
+      {{"__ABC_DEF", "__"}, {"", "ABC_DEF"}},
+      {{"ABC_DEF__", "__"}, {"ABC_DEF", ""}},
+      {{"__ABC_DEF__", "__"}, {"", "ABC_DEF", ""}},
+      {{"__ABC__DEF__", "__"}, {"", "ABC", "DEF", ""}},
+      {{"__ABC____DEF__", "__"}, {"", "ABC", "", "DEF", ""}},
+  };
+
+  Evaluator test_split("StringFormat::str_split", tests);
+
+  result(test_split.verify(message));
+
+  message << "\n";
+
+  if (result.hasFailed() || verbose)
+    cout << message.str();
+
+  cout << "~~~ "
+       << gen_summary(result, "Checking StringFormat::str_split function")
+       << endl;
+
+  return result;
+}
+
+Stats check_str_replace(bool verbose) {
+  Stats result;
+  sstream message;
+
+  message << "\n~~~ Checking StringFormat::str_replace\n"
+          << "\nTesting strings with default parameters:\n";
+
+  vector<StrReplace> tests = {
+      {{"", "", ""}, {""}},
+      {{"", "*", ""}, {""}},
+      {{"", "*", "+"}, {""}},
+      {{"", "", "+"}, {""}},
+      {{"ABC_DEF", "", ""}, {"ABC_DEF"}},
+      {{"ABC_DEF", "", "+"}, {"ABC_DEF"}},
+      {{"ABC_DEF", "*", "+"}, {"ABC_DEF"}},
+      {{"ABC_DEF", "*", ""}, {"ABC_DEF"}},
+      {{"ABC_DEF", "_", ""}, {"ABCDEF"}},
+      {{"__ABC__DEF__", "_", ""}, {"ABCDEF"}},
+      {{"__ABC__DEF__", "__", ""}, {"ABCDEF"}},
+      {{"__ABC__DEF__", "_", "+"}, {"++ABC++DEF++"}},
+      {{"__ABC__DEF__", "__", "+"}, {"+ABC+DEF+"}},
+      {{"__ABC__DEF__", "_", "++"}, {"++++ABC++++DEF++++"}},
+      {{"__ABC__DEF__", "__", "++"}, {"++ABC++DEF++"}},
+  };
+
+  Evaluator test_replace("StringFormat::str_split", tests);
+
+  result(test_replace.verify(message));
+
+  message << "\n";
+
+  if (result.hasFailed() || verbose)
+    cout << message.str();
+
+  cout << "~~~ "
+       << gen_summary(result, "Checking StringFormat::str_replace function")
+       << endl;
+
+  return result;
+}
+
+Stats check_open_file(bool verbose = false) {
+  Stats result;
+  sstream message;
+  message << "\n~~~ Checking Files::open_file\n";
+
+  vector<OpenFile> tests = {
+      {"TEST", "TEST"},
+  };
+
+  Evaluator test_open_file("Files::open_file", tests);
+
+  result(test_open_file.verify(message));
+
+  message << "\n";
+
+  if (result.hasFailed() || verbose)
+    cout << message.str();
+
+  cout << "~~~ " << gen_summary(result, "Checking Files::open_file function")
        << endl;
 
   return result;
@@ -501,105 +670,6 @@ Stats check_str_clean(bool verbose) {
 //   return {total, failed};
 // }
 //
-// pair_int check_str_clean(bool verbose = false) {
-//   int total = 0, failed = 0;
-//   cout << "~~~ Checking pairify function" << endl;
-//
-//   sstream message;
-//
-//   message << "\n";
-//
-//   const vector<pair_str> input_simple = {
-//       {"", ""},
-//       {" \t  \t ", ""},
-//       {" \t A \t \t B \t ", "A B"},
-//       {"A \t \tB", "A B"},
-//       {"\t A  B", "A B"},
-//       {"A  B \t", "A B"},
-//   };
-//
-//   for (const auto &[query, expected] : input_simple) {
-//     const auto result = str_clean(query);
-//     message << std::setw(3) << std::right << ++total << ")" << std::setw(40)
-//             << std::left << " str_clean(\"" + query + "\")"
-//             << " -> \"" << result << "\" ";
-//     if (result != expected) {
-//       ++failed;
-//       message << "!= \"" << expected << "\" " << failed_str << "\n";
-//     } else
-//       message << "== \"" << expected << "\" " << passed_str << "\n";
-//   }
-//
-//   message << "\n";
-//
-//   const vector<pair_str> input_strip = {
-//       {"", ""},
-//       {" \t  \t\t  \t ", "\t \t\t \t"},
-//       {"A\t   \tB", "A\t \tB"},
-//   };
-//
-//   for (const auto &[query, expected] : input_strip) {
-//     const auto result = str_clean(query, true, " \n");
-//     message << std::setw(3) << std::right << ++total << ")" << std::setw(40)
-//             << std::left << " str_clean(\"" + query + "\")"
-//             << " -> \"" << result << "\" ";
-//     if (result != expected) {
-//       ++failed;
-//       message << "!= \"" << expected << "\" " << failed_str << "\n";
-//     } else
-//       message << "== \"" << expected << "\" " << passed_str << "\n";
-//   }
-//
-//   message << "\n";
-//
-//   if (failed or verbose)
-//     cout << message.str();
-//
-//   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-//
-//   return {total, failed};
-// }
-//
-//
-// pair_int check_str_split(bool verbose = false) {
-//   int total = 0, failed = 0;
-//   cout << "~~~ Checking pairify function" << endl;
-//
-//   sstream message;
-//
-//   message << "\n";
-//
-//   const vector<tuple<string, char, vector<string>>> input_char{
-//       {"", 0, {}},
-//       {"ABC", 0, {"ABC"}},
-//       {"", ',', {}},
-//       {",", ',', {"", ""}},
-//       {",ABC,", ',', {"", "ABC", ""}},
-//   };
-//
-//   for (const auto &[query, sep, expected] : input_char) {
-//     const auto result = str_split(query, sep, true);
-//     message << std::setw(3) << std::right << ++total << ")" << std::setw(25)
-//             << std::left
-//             << " str_split(\"" + query + "\", '" + string(1, sep) + "')"
-//             << " -> " << result.size() << " ";
-//     if (result != expected) {
-//       ++failed;
-//       message << "!= " << expected.size() << " " << failed_str << "\n";
-//     } else
-//       message << "== " << expected.size() << " " << passed_str << "\n";
-//   }
-//
-//   message << "\n";
-//
-//   if (failed or verbose)
-//     cout << message.str();
-//
-//   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-//
-//   return {total, failed};
-// }
-//
 //
 // pair_int check_pairify(bool verbose = false) {
 //   int total = 0, failed = 0;
@@ -634,144 +704,6 @@ Stats check_str_clean(bool verbose) {
 //   return {total, failed};
 // }
 //
-// pair_int check_split(bool verbose = false) {
-//   int total = 0, failed = 0;
-//   cout << "~~~ Checking split function" << endl;
-//
-//   sstream message;
-//
-//   const vector<tuple<string, string, vector<string>>> input_string{
-//       {"", "", {""}},
-//       {"", "_", {""}},
-//       {"ABC_DEF", "", {"ABC_DEF"}},
-//       {"ABC_DEF", "_", {"ABC", "DEF"}},
-//       {"_ABC_DEF", "_", {"", "ABC", "DEF"}},
-//       {"ABC_DEF_", "_", {"ABC", "DEF", ""}},
-//       {"123ABC123DEF123", "", {"123ABC123DEF123"}},
-//       {"", "123", {""}},
-//       {"ABC123DEF", "123", {"ABC", "DEF"}},
-//       {"123ABC123DEF", "123", {"", "ABC", "DEF"}},
-//       {"ABC123DEF123", "123", {"ABC", "DEF", ""}},
-//       {"123ABC123DEF123", "123", {"", "ABC", "DEF", ""}},
-//       {"123ABC123123DEF123", "123", {"", "ABC", "", "DEF", ""}},
-//       {"123123123", "123", {"", "", "", ""}},
-//   };
-//
-//   for (auto [query, sep, expected] : input_string) {
-//     vector<string> result{};
-//     split<string, defs>(query.begin(), query.end(), begin(sep), end(sep),
-//                         back_inserter(result));
-//     message << std::setw(3) << std::right << ++total << std::setw(40)
-//             << std::left << ") split(\"" + query + "\", \"" + sep + "\") ";
-//     if (result != expected) {
-//       for (const auto &ele : result) {
-//         cout << "\"" << ele << "\" ";
-//       }
-//       cout << endl;
-//       ++failed;
-//       message << failed_str << "\n";
-//     } else
-//       message << passed_str << "\n";
-//   }
-//
-//   message << "\n";
-//
-//   const vector<tuple<vector<int>, vector<int>, vector<vector<int>>>>
-//   input_int{
-//       {{}, {}, {{}}},
-//       {{1, 2, 3}, {}, {{1, 2, 3}}},
-//       {{1, 2, 3}, {2}, {{1}, {3}}},
-//       {{1, 2, 3, 0, 0, 0, 4, 5, 6}, {0, 0, 0}, {{1, 2, 3}, {4, 5, 6}}},
-//       {{0, 0, 0, 1, 2, 3, 0, 0, 0, 4, 5, 6},
-//        {0, 0, 0},
-//        {{}, {1, 2, 3}, {4, 5, 6}}},
-//       {{1, 2, 3, 0, 0, 0, 4, 5, 6, 0, 0, 0},
-//        {0, 0, 0},
-//        {{1, 2, 3}, {4, 5, 6}, {}}},
-//       {{0, 0, 0, 1, 2, 3, 0, 0, 0, 4, 5, 6, 0, 0, 0},
-//        {0, 0, 0},
-//        {{}, {1, 2, 3}, {4, 5, 6}, {}}},
-//   };
-//
-//   for (auto [query, sep, expected] : input_int) {
-//     vector<vector<int>> result{};
-//     split<vector<int>, defs>(query.begin(), query.end(), begin(sep),
-//     end(sep),
-//                              back_inserter(result));
-//     message << std::setw(3) << std::right << ++total << ") ";
-//     if (result != expected) {
-//       ++failed;
-//       message << failed_str << "\n";
-//     } else
-//       message << passed_str << "\n";
-//   }
-//
-//   message << "\n";
-//
-//   if (failed or verbose)
-//     cout << message.str();
-//
-//   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-//
-//   return {total, failed};
-// }
-//
-
-//
-// pair_int check_open_file(bool verbose = false) {
-//   int total = 0, failed = 0;
-//   cout << "~~~ Checking open_file function" << endl;
-//
-//   sstream message;
-//
-//   ++total;
-//
-//   auto file = std::ofstream("test");
-//
-//   file << "TEST\n";
-//   file.close();
-//
-//   try {
-//     ifstream input{};
-//     open_file("test", input);
-//     string line{};
-//     getline(input, line);
-//     if (line != "TEST") {
-//       ++failed;
-//       cout << line << endl;
-//     }
-//   } catch (const runerror &ex) {
-//     cout << ex.what();
-//     ++failed;
-//   }
-//
-//   //  fs::remove(path("test"));
-//
-//   if (failed or verbose)
-//     cout << message.str();
-//
-//   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-//
-//   return {total, failed};
-// }
-//
-// pair_int EvalComTol::eval_comtol(bool verbose) {
-//   int total = 0, failed = 0;
-//   cout << gen_framed("Evaluating Common Tools") << "\n\n";
-//   update_stats(check_split(verbose), total, failed);
-//   update_stats(check_pairify(verbose), total, failed);
-//   update_stats(check_only_digits(verbose), total, failed);
-//   update_stats(check_str_split(verbose), total, failed);
-//   update_stats(check_str_clean_ends(verbose), total, failed);
-//   update_stats(check_str_clean(verbose), total, failed);
-//   update_stats(check_str_replace(verbose), total, failed);
-//   update_stats(check_str_map_fields(verbose), total, failed);
-//   update_stats(check_str_join_fields(verbose), total, failed);
-//   update_stats(check_open_file(verbose), total, failed);
-//   cout << gen_framed("Evaluation Completed") << "\n\n";
-//
-//   return {total, failed};
-// }
 
 int perform_tests(bool verbose) {
   Stats result;
@@ -789,11 +721,19 @@ int perform_tests(bool verbose) {
     result(check_merge(verbose));
     cout << ">>> Done\n";
 
-    cout << "\n>>> Checking Basic functions" << endl;
+    cout << "\n>>> Checking String functions" << endl;
     result(check_only_digits(verbose));
     result(check_str_to_int(verbose));
     result(check_str_clean_ends(verbose));
     result(check_str_clean(verbose));
+    result(check_str_join(verbose));
+    result(check_str_reverse(verbose));
+    result(check_str_split(verbose));
+    result(check_str_replace(verbose));
+    cout << ">>> Done\n";
+
+    cout << "\n>>> Checking Files functions" << endl;
+    result(check_open_file(verbose));
     cout << ">>> Done\n";
 
     cout << "\n" << gen_summary(result, "Evaluation", true) << "\n";
@@ -863,6 +803,31 @@ StrClean::StrClean(string input, string expected) : BaseTest(input, expected) {
 }
 StrCleanWithChars::StrCleanWithChars(StrCleanWithCharsInput input,
                                      string expected)
+    : BaseTest(input, expected) {
+  validate();
+}
+
+StrJoin::StrJoin(PrintableVector<int> input, string expected)
+    : BaseTest(input, expected) {
+  validate();
+}
+
+StrReverse::StrReverse(string input, string expected)
+    : BaseTest(input, expected) {
+  validate();
+}
+
+StrSplit::StrSplit(pair_str input, PrintableVector<string> expected)
+    : BaseTest(input, expected) {
+  validate();
+}
+
+StrReplace::StrReplace(StrReplaceInput input, string expected)
+    : BaseTest(input, expected) {
+  validate();
+}
+
+OpenFile::OpenFile(std::string input, std::string expected)
     : BaseTest(input, expected) {
   validate();
 }

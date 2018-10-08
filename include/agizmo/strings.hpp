@@ -8,7 +8,9 @@
 #include <sstream>
 #include <string>
 
-#include "basic.h"
+#include "basic.hpp"
+
+#include <experimental/iterator>
 
 namespace AGizmo {
 
@@ -37,13 +39,13 @@ inline bool only_digits(const string &query) noexcept {
 // Function checks if given strings is a valid number and converts it to
 // integer. If it is not a valid number function returns nullopt.
 inline opt_int str_to_int(const string &query) {
-  if (only_digits(query)) return std::stoi(query);
+  if (only_digits(query))
+    return std::stoi(query);
   return nullopt;
 }
 
 // Function converts time to string
-template <typename Type>
-string str_time(std::chrono::duration<Type> time) {
+template <typename Type> string str_time(std::chrono::duration<Type> time) {
   auto hours = to_string(std::chrono::floor<chours>(time).count());
   auto minutes = to_string(std::chrono::floor<cminutes>(time).count() % 60);
   auto seconds = to_string(std::chrono::floor<cseconds>(time).count() % 60);
@@ -64,7 +66,8 @@ inline string str_clean_ends(const string &source, const char strip[]) {
   // Find first character not present in strip array.
   auto first = source.find_first_not_of(strip);
   // If there are only whitespaces or source is empty return an empty string
-  if (string::npos == first) return {};
+  if (string::npos == first)
+    return {};
   // Find last character that is not in strip.
   auto last = source.find_last_not_of(strip);
   // Return subtring from first to last position
@@ -75,11 +78,13 @@ inline string str_clean_ends(const string &source, const char strip[]) {
 // It find first and last characters that are not whitespace and
 // substring from this positions.
 inline string str_clean_ends(const string &source, const string &strip = "") {
-  if (strip.size()) return str_clean_ends(source, strip.c_str());
+  if (strip.size())
+    return str_clean_ends(source, strip.c_str());
 
   auto first = find_if_not(source.begin(), source.end(),
                            [](char c) { return isspace(c); });
-  if (source.end() == first) return {};
+  if (source.end() == first)
+    return {};
   auto last = find_if_not(source.rbegin(), source.rend(),
                           [](char c) { return isspace(c); });
   return string(first, last.base());
@@ -107,7 +112,8 @@ inline string str_clean(const string &source, const char strip[],
 inline string str_clean(const string &source, bool ends = true,
                         const string &strip = " \n") {
   // If user defines collection of whitespaces overloaded function is called
-  if (!strip.empty()) return str_clean(source, strip.c_str(), ends);
+  if (!strip.empty())
+    return str_clean(source, strip.c_str(), ends);
 
   string result{ends ? str_clean_ends(source) : source};
   auto first = result.begin();
@@ -120,20 +126,21 @@ inline string str_clean(const string &source, bool ends = true,
 
 inline string str_align(const string &message, size_t width = 80,
                         char align = 'c') {
-  if (message.empty() || message.size() >= width) return message;
+  if (message.empty() || message.size() >= width)
+    return message;
 
   string result(width, ' ');
 
   switch (align) {
-    case 'c':
-      result.replace((width - message.size()) / 2, message.size(), message);
-      break;
-    case 'r':
-      result.replace(width - message.size(), message.size(), message);
-      break;
-    default:
-      result.replace(0, message.size(), message);
-      break;
+  case 'c':
+    result.replace((width - message.size()) / 2, message.size(), message);
+    break;
+  case 'r':
+    result.replace(width - message.size(), message.size(), message);
+    break;
+  default:
+    result.replace(0, message.size(), message);
+    break;
   }
 
   return result;
@@ -145,7 +152,8 @@ inline string str_frame(string message, size_t width, const string &prefix,
 
   const size_t message_size = message.size();
 
-  if (!message_size) return {};
+  if (!message_size)
+    return {};
 
   const size_t prefix_size = prefix.size();
   const size_t suffix_size = suffix.size();
@@ -153,8 +161,10 @@ inline string str_frame(string message, size_t width, const string &prefix,
   if (prefix_size + suffix_size >= width)
     throw runtime_error("Message width is smaller than frame!");
 
-  if (prefix_size) width -= prefix_size + 1;
-  if (suffix_size) width -= suffix_size + 1;
+  if (prefix_size)
+    width -= prefix_size + 1;
+  if (suffix_size)
+    width -= suffix_size + 1;
 
   if (message_size <= width) {
     return (prefix_size ? prefix + " " : "") +
@@ -186,25 +196,25 @@ inline string str_frame(string message, size_t width, const string &prefix,
   }
 }
 
-inline string str_replace(const string &source, char query) {
-  auto result = source;
-  result.erase(remove(result.begin(), result.end(), query), source.end());
-  return result;
+// Replaces all occurences of string query with string value in string source.
+// inline void str_replace(string& source, char query, char value = 0){
+inline string str_replace(string source, char query) {
+  source.erase(remove(source.begin(), source.end(), query), source.end());
+  return source;
 }
 
-inline string str_replace(const string &source, char query, char value) {
-  auto result = source;
-  replace(result.begin(), result.end(), query, value);
-  return result;
+inline string str_replace(string source, char query, char value) {
+  replace(source.begin(), source.end(), query, value);
+  return source;
 }
 
 // Replaces all occurences of string query with string value in string source.
 inline string str_replace(string source, const string &query,
                           const string &value) {
-  auto result = source;
+
   if (auto query_size = static_cast<long>(query.size());
       !source.size() || !query_size)
-    return result;
+    return source;
   else if (auto value_size = value.size(); query.size() > 1 || value_size > 1) {
     auto first = source.begin();
     auto searcher = default_searcher(query.begin(), query.end());
@@ -213,12 +223,12 @@ inline string str_replace(string source, const string &query,
 
     while (found != source.end()) {
       visited += value_size;
-      result.replace(found, found + query_size, value);
+      source.replace(found, found + query_size, value);
       first = next(source.begin(), visited);
       found = search(first, source.end(), searcher);
       visited += distance(first, found);
     }
-    return result;
+    return source;
   } else if (value_size)
     return str_replace(source, query[0], value[0]);
   else
@@ -227,28 +237,36 @@ inline string str_replace(string source, const string &query,
 
 template <typename T>
 inline string str_replace_n(string source, const T &index) {
-  for (const auto &[ele, value] : index) str_replace(source, ele, value);
+  for (const auto &[ele, value] : index)
+    str_replace(source, ele, value);
   return source;
 }
 
-}  // namespace StringFormat
+inline string str_reverse(string result) {
+  if (!result.length())
+    return "";
+  reverse(result.begin(), result.end());
+  return result;
+}
 
-namespace StringForm {
+} // namespace StringFormat
 
-using Basic::segment;
-using Basic::split;
+namespace StringCompose {
 
-template <typename It>
-string str_join(It begin, It end, string sep = "\t") {
-  if (begin == end) return "";
+//#include <experimental/iterator>
+using std::experimental::ostream_joiner;
 
-  //  return accumulate(next(begin), end, *begin,
-  //                    [sep](string a, string b) { return a + sep + b; });
+template <typename It> string str_join(It begin, It end, string sep = "\t") {
+  if (begin == end)
+    return "";
+
   sstream output;
-  output << *begin;
+  //  output << *begin;
 
-  for_each(next(begin), end,
-           [&output, sep](auto &ele) { output << sep << ele; });
+  //  for_each(next(begin), end,
+  //           [&output, sep](auto &ele) { output << sep << ele; });
+  //  ostream_joiner(output, sep);
+  copy(begin, end, ostream_joiner(output, sep));
 
   return output.str();
 }
@@ -258,21 +276,102 @@ string str_join(const Container &container, string sep = "\t") {
   return str_join(container.begin(), container.end(), sep);
 }
 
+using opt_str = std::optional<string>;
+using std::is_same_v;
+
+template <typename Value = opt_str, typename It>
+string join_fields(It first, It last, string fields_sep, string values_sep) {
+
+  vector<string> temp = {};
+  temp.reserve(static_cast<size_t>(distance(first, last)));
+
+  if constexpr (is_same_v<opt_str, Value>)
+    transform(first, last, back_inserter(temp), [&values_sep](const auto &ele) {
+      if (auto value = ele.second)
+        return ele.first + values_sep + *value;
+      else
+        return ele.first;
+    });
+  else
+    transform(first, last, back_inserter(temp), [&values_sep](const auto &ele) {
+      return ele.first + values_sep + ele.second;
+    });
+
+  return str_join(temp, fields_sep);
+}
+
+template <typename Value = opt_str, typename Map, typename It>
+string join_fields(const Map &ref, It first, It last, string fields_sep,
+                   string values) {
+
+  vector<string> temp = {};
+  temp.reserve(static_cast<size_t>(distance(first, last)));
+
+  if constexpr (is_same_v<opt_str, Value>)
+    transform(first, last, back_inserter(temp),
+              [&ref, &values](const auto &ele) {
+                if (auto value = ref.at(ele))
+                  return ele + values + *value;
+                else
+                  return ele;
+              });
+  else
+    transform(first, last, back_inserter(temp),
+              [&ref, &values](const auto &ele) {
+                return ele + values + ref.at(ele);
+              });
+
+  return str_join(temp, fields_sep);
+}
+
+// inline string str_join_fields(const umap_str_opt &ref, string fields = ";",
+//                              string values = "=") {
+//  return join_fields(ref.begin(), ref.end(), fields, values);
+//}
+
+// inline string str_join_fields(const umap_str &ref, string fields = ";",
+//                              string values = "=") {
+//  return join_fields<string>(ref.begin(), ref.end(), fields, values);
+//}
+
+// inline string str_join_fields(const umap_str &ref, const vec_str &names,
+//                              string fields = ";", string values = "=") {
+//  return join_fields<string>(ref, names.begin(), names.end(), fields, values);
+//}
+
+// inline string str_join_fields(const umap_str_opt &ref, const vec_str &names,
+//                              string fields = ";", string values = "=") {
+//  return join_fields(ref, names.begin(), names.end(), fields, values);
+//}
+
+} // namespace StringCompose
+
+namespace StringDecompose {
+
+using Basic::segment;
+using Basic::split;
+
 inline vec_str str_split(const string &source, char sep, bool empty) {
-  if (!source.size()) return vec_str{};
+  if (!source.size())
+    return vec_str{};
 
   vec_str result{};
 
   split<string>(source.begin(), source.end(), sep, back_inserter(result));
 
-  if (!empty) result.erase(remove(begin(result), end(result), ""), end(result));
+  if (!empty)
+    result.erase(remove(begin(result), end(result), ""), end(result));
 
   return result;
 }
 
 inline vec_str str_split(const string &source, string sep = "\t",
                          bool empty = true) {
-  if (sep.size() == 1) return str_split(source, sep[0], empty);
+  if (sep.empty() || source.empty())
+    return vec_str{source};
+
+  if (sep.size() == 1)
+    return str_split(source, sep[0], empty);
 
   vec_str result{};
 
@@ -283,7 +382,8 @@ inline vec_str str_split(const string &source, string sep = "\t",
     split<string, defs>(begin(source), end(source), begin(sep), end(sep),
                         back_inserter(result));
 
-  if (!empty) result.erase(remove(begin(result), end(result), ""), end(result));
+  if (!empty)
+    result.erase(remove(begin(result), end(result), ""), end(result));
 
   return result;
 }
@@ -296,95 +396,26 @@ inline vec_str str_segment(const string &source, int length) {
   return result;
 }
 
-inline string str_reverse(string result) {
-  if (!result.length()) return "";
-  reverse(result.begin(), result.end());
-  return result;
-}
-
-}  // namespace StringForm
+} // namespace StringDecompose
 
 namespace StringSearch {
+
 // Function counts all occurences of character in string.
 // Check starts from pos position. If pos is string::npos
 // it checks from the beginning of the string.
-// If pos is bigger than string size it return 0.
+// If pos is bigger than string size it returns 0.
 inline auto count_all(const string &source, char query, size_t pos = 0) {
   auto first =
       next(begin(source), (pos == string::npos) ? 0 : static_cast<long>(pos));
   auto last = end(source);
-  if (first > last) return 0l;
+  if (first > last)
+    return 0l;
   return count(first, last, query);
 }
-}  // namespace StringSearch
+} // namespace StringSearch
 
-// template <typename Value = opt_str, typename It>
-// string join_fields(It first, It last, string fields, string values) {
 //
-//    vector<string> temp = {};
-//    temp.reserve(static_cast<size_t>(distance(first, last)));
-//
-//    if constexpr (is_same_v<opt_str, Value>)
-//        transform(first, last, back_inserter(temp), [&values](const auto &ele)
-//        {
-//            if (auto value = ele.second)
-//                return ele.first + values + *value;
-//            else
-//                return ele.first;
-//        });
-//    else
-//        transform(first, last, back_inserter(temp), [&values](const auto &ele)
-//        {
-//            return ele.first + values + ele.second;
-//        });
-//
-//    return str_join(temp, fields);
-//}
-//
-// template <typename Value = opt_str, typename Map, typename It>
-// string join_fields(const Map &ref, It first, It last, string fields,
-//                   string values) {
-//
-//    vector<string> temp = {};
-//    temp.reserve(static_cast<size_t>(distance(first, last)));
-//
-//    if constexpr (is_same_v<opt_str, Value>)
-//        transform(first, last, back_inserter(temp),
-//                  [&ref, &values](const auto &ele) {
-//                      if (auto value = ref.at(ele))
-//                          return ele + values + *value;
-//                      else
-//                          return ele;
-//                  });
-//    else
-//        transform(first, last, back_inserter(temp),
-//                  [&ref, &values](const auto &ele) {
-//                      return ele + values + ref.at(ele);
-//                  });
-//
-//    return str_join(temp, fields);
-//}
-//
-// inline string str_join_fields(const umap_str_opt &ref, string fields = ";",
-//                              string values = "=") {
-//    return join_fields(ref.begin(), ref.end(), fields, values);
-//}
-//
-// inline string str_join_fields(const umap_str &ref, string fields = ";",
-//                              string values = "=") {
-//    return join_fields<string>(ref.begin(), ref.end(), fields, values);
-//}
-//
-// inline string str_join_fields(const umap_str &ref, const vec_str &names,
-//                              string fields = ";", string values = "=") {
-//    return join_fields<string>(ref, names.begin(), names.end(), fields,
-//    values);
-//}
-//
-// inline string str_join_fields(const umap_str_opt &ref, const vec_str &names,
-//                              string fields = ";", string values = "=") {
-//    return join_fields(ref, names.begin(), names.end(), fields, values);
-//}
+
 //
 // inline string str_devide(const string &source, size_t count, string sep) {
 //    if (!count || !source.length() || source.length() <= count)
@@ -479,21 +510,5 @@ inline auto count_all(const string &source, char query, size_t pos = 0) {
 //
 //    return result;
 //}
-//
-//// Replaces all occurences of string query with string value in string source.
-//// inline void str_replace(string& source, char query, char value = 0){
 
-//
-// inline void open_file(const string &file_name, ifstream &stream) {
-//
-//    //    auto file_path = path(file_name);
-//    //    if (exists(file_path)) {
-//    stream = ifstream(file_name);
-//    if (!stream.is_open())
-//        throw runerror{"Can't open '" + file_name + "'\n"};
-//    //    } else
-//    //      throw runerror{"File '" + file_name + "' does not exist"};
-//}
-//
-
-}  // namespace AGizmo
+} // namespace AGizmo

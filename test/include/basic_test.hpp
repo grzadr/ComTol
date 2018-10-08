@@ -1,41 +1,43 @@
 #pragma once
 
-#include "agizmo/basic.h"
-#include "agizmo/evaluation.h"
-#include "agizmo/strings.h"
+#include "agizmo/basic.hpp"
+#include "agizmo/evaluation.hpp"
+#include "agizmo/files.hpp"
+#include "agizmo/strings.hpp"
 
+#include <fstream>
 #include <sstream>
+#include <stdexcept>
 
 using sstream = std::stringstream;
 
 using namespace AGizmo;
 using namespace Evaluation;
-using namespace StringFormat;
-using namespace StringForm;
+// using namespace StringFormat;
+// using namespace StringForm;
 
 using std::pair;
 using pair_bool = pair<bool, bool>;
 using pair_char = pair<char, char>;
 using pair_int = pair<int, int>;
 
-template <typename It>
-Stats test_XOR(It begin, It end, sstream &message);
+template <typename It> Stats test_XOR(It begin, It end, sstream &message);
 
-template <typename Type>
-struct PrintableVector {
+template <typename Type> struct PrintableVector {
   vector<Type> value{};
 
   PrintableVector() = default;
   PrintableVector(std::initializer_list<Type> input) : value{input} {}
-  template <class InputIt>
-  PrintableVector(InputIt first, InputIt last) {
+  template <class InputIt> PrintableVector(InputIt first, InputIt last) {
     value = vector<Type>(first, last);
   }
+  PrintableVector(vector<Type> input) : value{input} {}
 
   string str() const {
-    if (value.empty()) return "{}";
+    if (value.empty())
+      return "{}";
 
-    return "{" + str_join(value.begin(), value.end(), ",") + "}";
+    return "{" + StringCompose::str_join(value.begin(), value.end(), ",") + "}";
   }
 
   auto begin() const noexcept { return value.begin(); }
@@ -55,8 +57,7 @@ struct PrintableVector {
   }
 };
 
-template <typename Type = int>
-struct NestedVector {
+template <typename Type = int> struct NestedVector {
   vector<PrintableVector<Type>> values{};
 
   NestedVector() = default;
@@ -69,7 +70,8 @@ struct NestedVector {
     else {
       sstream output;
       for (const auto &ele : values) {
-        output << ", {" + str_join(ele.begin(), ele.end(), ",") + "}";
+        output << ", {" + StringCompose::str_join(ele.begin(), ele.end(), ",") +
+                      "}";
       }
       return "{" + output.str().substr(2) + "}";
     }
@@ -96,8 +98,7 @@ struct NestedVector {
   }
 };
 
-template <class Type>
-struct PrintableOptional {
+template <class Type> struct PrintableOptional {
   std::optional<Type> value{std::nullopt};
 
   string str() const noexcept {
@@ -117,7 +118,7 @@ struct PrintableOptional {
 };
 
 class XORWithBool : public BaseTest<pair_bool, bool> {
- public:
+public:
   XORWithBool(pair_bool input, bool expected);
 
   string str() const noexcept {
@@ -133,7 +134,7 @@ class XORWithBool : public BaseTest<pair_bool, bool> {
 };
 
 class XORWithChar : public BaseTest<pair_char, bool> {
- public:
+public:
   XORWithChar(pair_char input, bool expected);
 
   string str() const noexcept {
@@ -148,15 +149,14 @@ class XORWithChar : public BaseTest<pair_char, bool> {
   }
 };
 
-template <class Sep>
-struct InputVectorSep {
+template <class Sep> struct InputVectorSep {
   const PrintableVector<int> elements;
   const Sep sep;
 };
 
 class SplitVectorWithVectorSep
     : public BaseTest<InputVectorSep<PrintableVector<int>>, NestedVector<int>> {
- public:
+public:
   SplitVectorWithVectorSep(InputVectorSep<PrintableVector<int>> input,
                            NestedVector<int> expected);
 
@@ -176,7 +176,7 @@ class SplitVectorWithVectorSep
 
 class SplitVectorWithSep
     : public BaseTest<InputVectorSep<int>, NestedVector<int>> {
- public:
+public:
   SplitVectorWithSep(InputVectorSep<int> input, NestedVector<int> expected);
 
   string str() const noexcept {
@@ -198,7 +198,7 @@ struct SegmentInput {
 };
 
 class SegmentVector : public BaseTest<SegmentInput, NestedVector<int>> {
- public:
+public:
   SegmentVector(SegmentInput input, NestedVector<int> expected);
 
   bool validate() {
@@ -215,7 +215,7 @@ class SegmentVector : public BaseTest<SegmentInput, NestedVector<int>> {
 };
 
 class MergeVector : public BaseTest<InputVectorSep<int>, PrintableVector<int>> {
- public:
+public:
   MergeVector(InputVectorSep<int> input, PrintableVector<int> expected);
   string str() const noexcept {
     return "(" + this->input.elements.str() + ", " + to_string(input.sep) +
@@ -229,7 +229,7 @@ class MergeVector : public BaseTest<InputVectorSep<int>, PrintableVector<int>> {
 };
 
 class OnlyDigits : public BaseTest<string, bool> {
- public:
+public:
   OnlyDigits(string input, bool expected);
 
   string str() const noexcept {
@@ -244,7 +244,7 @@ class OnlyDigits : public BaseTest<string, bool> {
 };
 
 class StrToInt : public BaseTest<string, PrintableOptional<int>> {
- public:
+public:
   StrToInt(string input, PrintableOptional<int> expected);
 
   string str() const noexcept {
@@ -259,7 +259,7 @@ class StrToInt : public BaseTest<string, PrintableOptional<int>> {
 };
 
 class StrCleanEnds : public BaseTest<string, string> {
- public:
+public:
   StrCleanEnds(string input, string expected);
 
   string str() const noexcept {
@@ -278,7 +278,7 @@ struct StrCleanWithCharsInput {
 };
 
 class StrCleanEndsWithChars : public BaseTest<StrCleanWithCharsInput, string> {
- public:
+public:
   StrCleanEndsWithChars(StrCleanWithCharsInput input, string expected);
 
   string str() const noexcept {
@@ -293,7 +293,7 @@ class StrCleanEndsWithChars : public BaseTest<StrCleanWithCharsInput, string> {
 };
 
 class StrClean : public BaseTest<string, string> {
- public:
+public:
   StrClean(string input, string expected);
 
   string str() const noexcept {
@@ -308,7 +308,7 @@ class StrClean : public BaseTest<string, string> {
 };
 
 class StrCleanWithChars : public BaseTest<StrCleanWithCharsInput, string> {
- public:
+public:
   StrCleanWithChars(StrCleanWithCharsInput input, string expected);
 
   string str() const noexcept {
@@ -318,6 +318,97 @@ class StrCleanWithChars : public BaseTest<StrCleanWithCharsInput, string> {
 
   bool validate() {
     outcome = StringFormat::str_clean(input.query, true, input.chars);
+    return this->setStatus(outcome == expected);
+  }
+};
+
+class StrJoin : public BaseTest<PrintableVector<int>, string> {
+public:
+  StrJoin(PrintableVector<int> input, string expected);
+
+  string str() const noexcept {
+    return "(" + this->input.str() + ")\n Outcome: " + outcome +
+           "\nExpected: " + expected;
+  }
+
+  bool validate() {
+    outcome = StringCompose::str_join(input.begin(), input.end(), "-");
+    return this->setStatus(outcome == expected);
+  }
+};
+
+class StrReverse : public BaseTest<string, string> {
+public:
+  StrReverse(string input, string expected);
+
+  string str() const noexcept {
+    return "(" + this->input + ")\n Outcome: " + outcome +
+           "\nExpected: " + expected;
+  }
+
+  bool validate() {
+    outcome = StringFormat::str_reverse(input);
+    return this->setStatus(outcome == expected);
+  }
+};
+
+class StrSplit : public BaseTest<pair_str, PrintableVector<string>> {
+public:
+  StrSplit(pair_str input, PrintableVector<string> expected);
+
+  string str() const noexcept {
+    return "(" + this->input.first + "," + input.second +
+           ")\n Outcome: " + outcome.str() + "\nExpected: " + expected.str();
+  }
+
+  bool validate() {
+    outcome =
+        PrintableVector(StringDecompose::str_split(input.first, input.second));
+    return this->setStatus(outcome == expected);
+  }
+};
+
+struct StrReplaceInput {
+  string source, query, value;
+};
+
+class StrReplace : public BaseTest<StrReplaceInput, string> {
+public:
+  StrReplace(StrReplaceInput input, string expected);
+
+  string str() const noexcept {
+    return "(" + this->input.source + "," + input.query + "," + input.value +
+           ")\n Outcome: " + outcome + "\nExpected: " + expected;
+  }
+
+  bool validate() {
+    outcome = StringFormat::str_replace(input.source, input.query, input.value);
+    return this->setStatus(outcome == expected);
+  }
+};
+
+class OpenFile : public BaseTest<string, string> {
+public:
+  OpenFile(string input, string expected);
+
+  string str() const noexcept {
+    return "(" + this->input + ")\n Outcome: " + outcome +
+           "\nExpected: " + expected;
+  }
+
+  bool validate() {
+    auto file = std::ofstream("test.txt");
+    file << input << "\n";
+    file.close();
+
+    try {
+      std::ifstream input{};
+      Files::open_file("test.txt", input);
+      getline(input, outcome);
+    } catch (const std::runtime_error &ex) {
+      std::cerr << ex.what();
+    }
+
     return this->setStatus(outcome == expected);
   }
 };
