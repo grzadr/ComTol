@@ -280,7 +280,8 @@ using opt_str = std::optional<string>;
 using std::is_same_v;
 
 template <typename Value = opt_str, typename It>
-string join_fields(It first, It last, string fields_sep, string values_sep) {
+inline string str_join_fields(It first, It last, string fields_sep = ";",
+                              string values_sep = "=") {
 
   vector<string> temp = {};
   temp.reserve(static_cast<size_t>(distance(first, last)));
@@ -300,29 +301,64 @@ string join_fields(It first, It last, string fields_sep, string values_sep) {
   return str_join(temp, fields_sep);
 }
 
-template <typename Value = opt_str, typename Map, typename It>
-string join_fields(const Map &ref, It first, It last, string fields_sep,
-                   string values) {
+using std::optional;
+using std::pair;
+
+template <class Value>
+using pair_str_opt = std::pair<const string, optional<Value>>;
+
+template <template <class Type> class Container, class Key, class Value>
+inline string
+str_join_fields_v2(const Container<pair<const Key, Value>> &container,
+                   string fields_sep = ";", string values_sep = "=") {
 
   vector<string> temp = {};
-  temp.reserve(static_cast<size_t>(distance(first, last)));
+  temp.reserve(
+      static_cast<size_t>(distance(container.begin(), container.end())));
 
-  if constexpr (is_same_v<opt_str, Value>)
-    transform(first, last, back_inserter(temp),
-              [&ref, &values](const auto &ele) {
-                if (auto value = ref.at(ele))
-                  return ele + values + *value;
-                else
-                  return ele;
-              });
-  else
-    transform(first, last, back_inserter(temp),
-              [&ref, &values](const auto &ele) {
-                return ele + values + ref.at(ele);
-              });
+  //  sstream result;
+
+  //  if constexpr (is_same_v<optional, Value>)
+  //    transform(first, last, back_inserter(temp), [&values_sep](const auto
+  //    &ele) {
+  //      if (auto value = ele.second)
+  //        return ele.first + values_sep + *value;
+  //      else
+  //        return ele.first;
+  //    });
+  //  else
+  //    transform(first, last, back_inserter(temp), [&values_sep](const auto
+  //    &ele) {
+  //      return ele.first + values_sep + ele.second;
+  //    });
 
   return str_join(temp, fields_sep);
 }
+
+// template <typename Value = opt_str, typename Map, typename It>
+// inline string str_join_fields(const Map &ref, It first, It last,
+//                              string fields_sep = ";",
+//                              string values_sep = "=") {
+
+//  vector<string> temp = {};
+//  temp.reserve(static_cast<size_t>(distance(first, last)));
+
+//  if constexpr (is_same_v<opt_str, Value>)
+//    transform(first, last, back_inserter(temp),
+//              [&ref, &values_sep](const auto &ele) {
+//                if (auto value = ref.at(ele))
+//                  return ele + values_sep + *value;
+//                else
+//                  return ele;
+//              });
+//  else
+//    transform(first, last, back_inserter(temp),
+//              [&ref, &values_sep](const auto &ele) {
+//                return ele + values_sep + ref.at(ele);
+//              });
+
+//  return str_join(temp, fields_sep);
+//}
 
 // inline string str_join_fields(const umap_str_opt &ref, string fields = ";",
 //                              string values = "=") {

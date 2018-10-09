@@ -469,25 +469,76 @@ Stats check_str_replace(bool verbose) {
   return result;
 }
 
-Stats check_open_file(bool verbose = false) {
+Stats check_join_fields(bool verbose) {
   Stats result;
   sstream message;
-  message << "\n~~~ Checking Files::open_file\n";
 
-  vector<OpenFile> tests = {
-      {"TEST", "TEST"},
+  message << "\n~~~ Checking StringFormat::str_replace\n"
+          << "\nTesting strings with default parameters:\n";
+
+  vector<StrReplace> tests = {
+      {{"", "", ""}, {""}},
+      {{"", "*", ""}, {""}},
+      {{"", "*", "+"}, {""}},
+      {{"", "", "+"}, {""}},
+      {{"ABC_DEF", "", ""}, {"ABC_DEF"}},
+      {{"ABC_DEF", "", "+"}, {"ABC_DEF"}},
+      {{"ABC_DEF", "*", "+"}, {"ABC_DEF"}},
+      {{"ABC_DEF", "*", ""}, {"ABC_DEF"}},
+      {{"ABC_DEF", "_", ""}, {"ABCDEF"}},
+      {{"__ABC__DEF__", "_", ""}, {"ABCDEF"}},
+      {{"__ABC__DEF__", "__", ""}, {"ABCDEF"}},
+      {{"__ABC__DEF__", "_", "+"}, {"++ABC++DEF++"}},
+      {{"__ABC__DEF__", "__", "+"}, {"+ABC+DEF+"}},
+      {{"__ABC__DEF__", "_", "++"}, {"++++ABC++++DEF++++"}},
+      {{"__ABC__DEF__", "__", "++"}, {"++ABC++DEF++"}},
   };
 
-  Evaluator test_open_file("Files::open_file", tests);
+  Evaluator test_replace("StringFormat::str_split", tests);
 
-  result(test_open_file.verify(message));
+  result(test_replace.verify(message));
 
   message << "\n";
 
   if (result.hasFailed() || verbose)
     cout << message.str();
 
-  cout << "~~~ " << gen_summary(result, "Checking Files::open_file function")
+  cout << "~~~ "
+       << gen_summary(result, "Checking StringFormat::str_replace function")
+       << endl;
+
+  return result;
+}
+
+Stats check_open_file(bool verbose = false) {
+  Stats result;
+  sstream message;
+  message
+      << "\n~~~ Checking StringCompose::str_join_fields with std::optional\n";
+
+  //  vector<pair<string, opt_str>> tests = {{"K1", "V1"}, {"K2", ""}, {"K3",
+  //  {}}};
+  vector<pair<string, opt_str>> tests = {{"K1", "V1"}, {"K2", ""}, {"K3", {}}};
+
+  opt_str test = std::nullopt;
+
+  auto outcome = StringCompose::str_join_fields(tests.begin(), tests.end());
+
+  cout << "Fields: " << outcome << endl;
+  cout << test.value_or("TEST") << endl;
+
+  //  Evaluator test_open_file("StringCompose::str_join_fields", tests);
+
+  //  result(test_open_file.verify(message));
+
+  message << "\n";
+
+  if (result.hasFailed() || verbose)
+    cout << message.str();
+
+  cout << "~~~ "
+       << gen_summary(result,
+                      "Checking StringCompose::str_join_fields function")
        << endl;
 
   return result;
