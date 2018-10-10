@@ -52,8 +52,7 @@ Stats check_XOR(bool verbose = false) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::XOR") << endl;
 
@@ -113,8 +112,7 @@ Stats check_split(bool verbose = false) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::split function")
        << endl;
@@ -144,8 +142,7 @@ Stats check_segment(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::segment function")
        << endl;
@@ -171,8 +168,7 @@ Stats check_merge(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::merge function")
        << endl;
@@ -197,8 +193,7 @@ Stats check_only_digits(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::only_digits function")
@@ -228,8 +223,7 @@ Stats check_str_to_int(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_to_int function")
@@ -276,8 +270,7 @@ Stats check_str_clean_ends(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_clean_ends function")
@@ -320,8 +313,7 @@ Stats check_str_clean(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_clean function")
@@ -349,8 +341,7 @@ Stats check_str_join(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_join function")
@@ -378,8 +369,7 @@ Stats check_str_reverse(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_reverse function")
@@ -418,8 +408,7 @@ Stats check_str_split(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_split function")
@@ -459,8 +448,7 @@ Stats check_str_replace(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_replace function")
@@ -500,8 +488,7 @@ Stats check_join_fields(bool verbose) {
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_replace function")
@@ -513,181 +500,43 @@ Stats check_join_fields(bool verbose) {
 Stats check_open_file(bool verbose = false) {
   Stats result;
   sstream message;
-  message
-      << "\n~~~ Checking StringCompose::str_join_fields with std::optional\n";
+  message << "\n~~~ Checking Files::open_file\n";
+
+  vector<OpenFile> tests = {{"TEST", "TEST"}};
 
   //  vector<pair<string, opt_str>> tests = {{"K1", "V1"}, {"K2", ""}, {"K3",
   //  {}}};
-  vector<pair<string, opt_str>> tests = {{"K1", "V1"}, {"K2", ""}, {"K3", {}}};
+  //  vector<pair<string, opt_str>> tests = {{"K1", "V1"}, {"K2", ""}, {"K3",
+  //  {}}}; auto outcome = StringCompose::str_join_fields(tests.begin(),
+  //  tests.end());
 
-  opt_str test = std::nullopt;
+  //  cout << "Fields: '" << outcome << "'\n";
 
-  auto outcome = StringCompose::str_join_fields(tests.begin(), tests.end());
+  //  vector<pair_str> string_tests = {{"K1", "V1"}, {"K2", ""}, {"K3", {}}};
+  //  auto string_outcome = StringCompose::str_join_fields("",
+  //  string_tests.begin(),
+  //                                                       string_tests.end());
 
-  cout << "Fields: " << outcome << endl;
-  cout << test.value_or("TEST") << endl;
+  //  cout << "String Fields: '" << string_outcome << "'\n";
 
-  //  Evaluator test_open_file("StringCompose::str_join_fields", tests);
+  //  auto outcome_with_strings = StringCompose::str_join_fields(
+  //      tests_with_strings.begin(), tests_with_strings.end());
+  //  cout << "Fields with strings: " << outcome_with_strings << endl;
 
-  //  result(test_open_file.verify(message));
+  Evaluator test_open_file("Files::open_file", tests);
+
+  result(test_open_file.verify(message));
 
   message << "\n";
 
-  if (result.hasFailed() || verbose)
-    cout << message.str();
+  if (result.hasFailed() || verbose) cout << message.str();
 
-  cout << "~~~ "
-       << gen_summary(result,
-                      "Checking StringCompose::str_join_fields function")
+  cout << "~~~ " << gen_summary(result, "Checking Files::open_file function")
        << endl;
 
   return result;
 }
 
-// pair_int check_str_join_fields(bool verbose = false) {
-//   int total = 0, failed = 0;
-//   cout << "~~~ Checking str_replace function" << endl;
-//
-//   sstream message;
-//
-//   message << "\n";
-//
-//   const umap_str input_str = {{"K3", "V3"}, {"K2", ""}, {"K1", "V1"}};
-//   auto expected = "K1=V1;K2=;K3=V3";
-//   auto result = str_join_fields(input_str);
-//
-//   message << std::setw(3) << std::right << ++total << ")";
-//   if (result != expected) {
-//     ++failed;
-//     message << std::setw(20) << std::right << result << " != " <<
-//     std::setw(20)
-//             << std::left << expected << " " << failed_str << "\n";
-//   } else
-//     message << std::setw(20) << std::right << result << " == " <<
-//     std::setw(20)
-//             << std::left << expected << " " << passed_str << "\n";
-//
-//   const umap<string, opt_str> input_opt = {
-//       {"K3", ""}, {"K2", {}}, {"K1", "V1"}};
-//   expected = "K1=V1;K2;K3=";
-//   result = str_join_fields(input_opt);
-//
-//   message << std::setw(3) << std::right << ++total << ")";
-//   if (result != expected) {
-//     ++failed;
-//     message << std::setw(20) << std::right << result << " != " <<
-//     std::setw(20)
-//             << std::left << expected << " " << failed_str << "\n";
-//   } else
-//     message << std::setw(20) << std::right << result << " == " <<
-//     std::setw(20)
-//             << std::left << expected << " " << passed_str << "\n";
-//
-//   const vec_str names{"K3", "K2"};
-//   expected = "K3=V3;K2=";
-//   result = str_join_fields(input_str, names);
-//
-//   message << std::setw(3) << std::right << ++total << ")";
-//   if (result != expected) {
-//     ++failed;
-//     message << std::setw(20) << std::right << result << " != " <<
-//     std::setw(20)
-//             << std::left << expected << " " << failed_str << "\n";
-//   } else
-//     message << std::setw(20) << std::right << result << " == " <<
-//     std::setw(20)
-//             << std::left << expected << " " << passed_str << "\n";
-//
-//   expected = "K3=;K2";
-//   result = str_join_fields(input_opt, names);
-//
-//   message << std::setw(3) << std::right << ++total << ")";
-//   if (result != expected) {
-//     ++failed;
-//     message << std::setw(20) << std::right << result << " != " <<
-//     std::setw(20)
-//             << std::left << expected << " " << failed_str << "\n";
-//   } else
-//     message << std::setw(20) << std::right << result << " == " <<
-//     std::setw(20)
-//             << std::left << expected << " " << passed_str << "\n";
-//
-//   if (failed or verbose)
-//     cout << message.str();
-//
-//   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-//
-//   return {total, failed};
-// }
-//
-// pair_int check_str_replace(bool verbose = false) {
-//   struct Element {
-//     string source, query, value, expected;
-//   };
-//
-//   int total = 0, failed = 0;
-//   cout << "~~~ Checking str_replace function" << endl;
-//
-//   sstream message;
-//
-//   message << "\n";
-//
-//   const vector<Element> input{
-//       {"0034007800", "00", "___", "___34___78___"},
-//       {"ABAABBABCAB", "", "_", "ABAABBABCAB"},
-//       {"ABAABBABCAB", "AB", "", "ABC"},
-//       {"ABAABBABCAB", "AB", "_", "_A_B_C_"},
-//       {"ABAABBABCAB", "AB", "__", "__A__B__C__"},
-//       {"ABAABBABCAB", "AB", "___", "___A___B___C___"},
-//       {"ABC", "B", "", "AC"},
-//       {"ABC", "B", "D", "ADC"},
-//   };
-//
-//   for (const auto &[source, query, value, expected] : input) {
-//     auto result = source;
-//     str_replace(result, query, value);
-//     message << std::setw(3) << std::right << ++total << ")" << std::setw(40)
-//             << std::left
-//             << " str_replace(\"" + source + "\", \"" + query + "\", \"" +
-//                    value + "\")"
-//             << " -> " << std::setw(20) << std::right << "\"" + result + "\"
-//             ";
-//     if (result != expected) {
-//       ++failed;
-//       message << std::setw(20) << std::left << "!= \"" + expected + "\" "
-//               << failed_str << "\n";
-//     } else
-//       message << std::setw(20) << std::left << "== \"" + expected + "\" "
-//               << passed_str << "\n";
-//   }
-//
-//   message << "\n";
-//
-//   const map<string, string> input_map{
-//       {"AB", "__"}, {"C", "++"}, {"DE", ""}, {"==", "##"}, {"++", "AB"}};
-//   string source{"++DEXABDEYDEC"}, expected{"__X__Y++"};
-//   auto result = source;
-//   str_replace_n(result, input_map);
-//
-//   message << std::setw(3) << std::right << ++total << ")" << std::setw(40)
-//           << std::left << " str_replace(\"" + source + "\", input_map)"
-//           << " -> " << std::setw(20) << std::right << "\"" + result + "\" ";
-//   if (result != expected) {
-//     ++failed;
-//     message << std::setw(20) << std::left << "!= \"" + expected + "\" "
-//             << failed_str << "\n";
-//   } else
-//     message << std::setw(20) << std::left << "== \"" + expected + "\" "
-//             << passed_str << "\n";
-//
-//   if (failed or verbose)
-//     cout << message.str();
-//
-//   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-//
-//   return {total, failed};
-// }
-//
 // pair_int check_str_map_fields(bool verbose = false) {
 //   int total = 0, failed = 0;
 //   cout << "~~~ Checking str_map_fields function" << endl;
@@ -720,41 +569,6 @@ Stats check_open_file(bool verbose = false) {
 //
 //   return {total, failed};
 // }
-//
-//
-// pair_int check_pairify(bool verbose = false) {
-//   int total = 0, failed = 0;
-//   cout << "~~~ Checking pairify function" << endl;
-//
-//   sstream message;
-//
-//   message << "\n";
-//
-//   const vector<tuple<vector<string>, vector<int>, vector<pair<string, int>>>>
-//       input{
-//           {{"A", "B", "C"}, {1, 2, 3}, {{"A", 1}, {"B", 2}, {"C", 3}}},
-//       };
-//
-//   for (const auto &[first, second, expected] : input) {
-//     message << std::setw(3) << std::right << ++total << ") ";
-//
-//     if (pairify(first, second) != expected) {
-//       ++failed;
-//       message << failed_str << "\n";
-//     } else
-//       message << passed_str << "\n";
-//   }
-//
-//   message << "\n";
-//
-//   if (failed or verbose)
-//     cout << message.str();
-//
-//   cout << "~~~ " << gen_summary(total, failed, "Check") << "\n" << endl;
-//
-//   return {total, failed};
-// }
-//
 
 int perform_tests(bool verbose) {
   Stats result;

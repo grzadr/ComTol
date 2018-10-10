@@ -8,6 +8,8 @@
 #include <sstream>
 #include <string>
 
+#include <map>
+
 #include "basic.hpp"
 
 #include <experimental/iterator>
@@ -39,13 +41,13 @@ inline bool only_digits(const string &query) noexcept {
 // Function checks if given strings is a valid number and converts it to
 // integer. If it is not a valid number function returns nullopt.
 inline opt_int str_to_int(const string &query) {
-  if (only_digits(query))
-    return std::stoi(query);
+  if (only_digits(query)) return std::stoi(query);
   return nullopt;
 }
 
 // Function converts time to string
-template <typename Type> string str_time(std::chrono::duration<Type> time) {
+template <typename Type>
+string str_time(std::chrono::duration<Type> time) {
   auto hours = to_string(std::chrono::floor<chours>(time).count());
   auto minutes = to_string(std::chrono::floor<cminutes>(time).count() % 60);
   auto seconds = to_string(std::chrono::floor<cseconds>(time).count() % 60);
@@ -66,8 +68,7 @@ inline string str_clean_ends(const string &source, const char strip[]) {
   // Find first character not present in strip array.
   auto first = source.find_first_not_of(strip);
   // If there are only whitespaces or source is empty return an empty string
-  if (string::npos == first)
-    return {};
+  if (string::npos == first) return {};
   // Find last character that is not in strip.
   auto last = source.find_last_not_of(strip);
   // Return subtring from first to last position
@@ -78,13 +79,11 @@ inline string str_clean_ends(const string &source, const char strip[]) {
 // It find first and last characters that are not whitespace and
 // substring from this positions.
 inline string str_clean_ends(const string &source, const string &strip = "") {
-  if (strip.size())
-    return str_clean_ends(source, strip.c_str());
+  if (strip.size()) return str_clean_ends(source, strip.c_str());
 
   auto first = find_if_not(source.begin(), source.end(),
                            [](char c) { return isspace(c); });
-  if (source.end() == first)
-    return {};
+  if (source.end() == first) return {};
   auto last = find_if_not(source.rbegin(), source.rend(),
                           [](char c) { return isspace(c); });
   return string(first, last.base());
@@ -112,8 +111,7 @@ inline string str_clean(const string &source, const char strip[],
 inline string str_clean(const string &source, bool ends = true,
                         const string &strip = " \n") {
   // If user defines collection of whitespaces overloaded function is called
-  if (!strip.empty())
-    return str_clean(source, strip.c_str(), ends);
+  if (!strip.empty()) return str_clean(source, strip.c_str(), ends);
 
   string result{ends ? str_clean_ends(source) : source};
   auto first = result.begin();
@@ -126,21 +124,20 @@ inline string str_clean(const string &source, bool ends = true,
 
 inline string str_align(const string &message, size_t width = 80,
                         char align = 'c') {
-  if (message.empty() || message.size() >= width)
-    return message;
+  if (message.empty() || message.size() >= width) return message;
 
   string result(width, ' ');
 
   switch (align) {
-  case 'c':
-    result.replace((width - message.size()) / 2, message.size(), message);
-    break;
-  case 'r':
-    result.replace(width - message.size(), message.size(), message);
-    break;
-  default:
-    result.replace(0, message.size(), message);
-    break;
+    case 'c':
+      result.replace((width - message.size()) / 2, message.size(), message);
+      break;
+    case 'r':
+      result.replace(width - message.size(), message.size(), message);
+      break;
+    default:
+      result.replace(0, message.size(), message);
+      break;
   }
 
   return result;
@@ -152,8 +149,7 @@ inline string str_frame(string message, size_t width, const string &prefix,
 
   const size_t message_size = message.size();
 
-  if (!message_size)
-    return {};
+  if (!message_size) return {};
 
   const size_t prefix_size = prefix.size();
   const size_t suffix_size = suffix.size();
@@ -161,10 +157,8 @@ inline string str_frame(string message, size_t width, const string &prefix,
   if (prefix_size + suffix_size >= width)
     throw runtime_error("Message width is smaller than frame!");
 
-  if (prefix_size)
-    width -= prefix_size + 1;
-  if (suffix_size)
-    width -= suffix_size + 1;
+  if (prefix_size) width -= prefix_size + 1;
+  if (suffix_size) width -= suffix_size + 1;
 
   if (message_size <= width) {
     return (prefix_size ? prefix + " " : "") +
@@ -211,7 +205,6 @@ inline string str_replace(string source, char query, char value) {
 // Replaces all occurences of string query with string value in string source.
 inline string str_replace(string source, const string &query,
                           const string &value) {
-
   if (auto query_size = static_cast<long>(query.size());
       !source.size() || !query_size)
     return source;
@@ -237,28 +230,26 @@ inline string str_replace(string source, const string &query,
 
 template <typename T>
 inline string str_replace_n(string source, const T &index) {
-  for (const auto &[ele, value] : index)
-    str_replace(source, ele, value);
+  for (const auto &[ele, value] : index) str_replace(source, ele, value);
   return source;
 }
 
 inline string str_reverse(string result) {
-  if (!result.length())
-    return "";
+  if (!result.length()) return "";
   reverse(result.begin(), result.end());
   return result;
 }
 
-} // namespace StringFormat
+}  // namespace StringFormat
 
 namespace StringCompose {
 
 //#include <experimental/iterator>
 using std::experimental::ostream_joiner;
 
-template <typename It> string str_join(It begin, It end, string sep = "\t") {
-  if (begin == end)
-    return "";
+template <typename It>
+string str_join(It begin, It end, string sep = "\t") {
+  if (begin == end) return "";
 
   sstream output;
   //  output << *begin;
@@ -276,63 +267,55 @@ string str_join(const Container &container, string sep = "\t") {
   return str_join(container.begin(), container.end(), sep);
 }
 
-using opt_str = std::optional<string>;
-using std::is_same_v;
-
-template <typename Value = opt_str, typename It>
-inline string str_join_fields(It first, It last, string fields_sep = ";",
+template <class InputIt>
+inline string str_join_fields(InputIt first, const InputIt &last,
+                              string fields_sep = ";",
                               string values_sep = "=") {
+  if (first == last) return "";
 
-  vector<string> temp = {};
-  temp.reserve(static_cast<size_t>(distance(first, last)));
+  sstream output;
 
-  if constexpr (is_same_v<opt_str, Value>)
-    transform(first, last, back_inserter(temp), [&values_sep](const auto &ele) {
-      if (auto value = ele.second)
-        return ele.first + values_sep + *value;
-      else
-        return ele.first;
-    });
-  else
-    transform(first, last, back_inserter(temp), [&values_sep](const auto &ele) {
-      return ele.first + values_sep + ele.second;
-    });
+  for (; first != last; ++first) {
+    const auto &[key, value] = *first;
+    output << fields_sep << key;
+    if (value) output << values_sep << *value;
+  }
 
-  return str_join(temp, fields_sep);
+  string result;
+
+  output.get();
+  output >> result;
+
+  return result;
 }
 
-using std::optional;
-using std::pair;
+template <class MapType>
+inline string str_join_fields(const MapType &values, string fields_sep = ";",
+                              string values_sep = "=") {
+  return str_join_fields(values.begin(), values.end(), fields_sep, values_sep);
+}
 
-template <class Value>
-using pair_str_opt = std::pair<const string, optional<Value>>;
+template <class Missing, class InputIt>
+inline string str_join_fields(Missing missing, InputIt first,
+                              const InputIt &last, string fields_sep = ";",
+                              string values_sep = "=") {
+  if (first == last) return "";
 
-template <template <class Type> class Container, class Key, class Value>
-inline string
-str_join_fields_v2(const Container<pair<const Key, Value>> &container,
-                   string fields_sep = ";", string values_sep = "=") {
+  sstream output;
 
-  vector<string> temp = {};
-  temp.reserve(
-      static_cast<size_t>(distance(container.begin(), container.end())));
+  for (; first != last; ++first) {
+    const auto &[key, value] = *first;
+    output << fields_sep << key;
+    if (value != missing) output << values_sep << value;
+  }
 
-  //  sstream result;
+  string result;
 
-  //  if constexpr (is_same_v<optional, Value>)
-  //    transform(first, last, back_inserter(temp), [&values_sep](const auto
-  //    &ele) {
-  //      if (auto value = ele.second)
-  //        return ele.first + values_sep + *value;
-  //      else
-  //        return ele.first;
-  //    });
-  //  else
-  //    transform(first, last, back_inserter(temp), [&values_sep](const auto
-  //    &ele) {
-  //      return ele.first + values_sep + ele.second;
-  //    });
+  output.get();
 
-  return str_join(temp, fields_sep);
+  output >> result;
+
+  return result;
 }
 
 // template <typename Value = opt_str, typename Map, typename It>
@@ -360,27 +343,7 @@ str_join_fields_v2(const Container<pair<const Key, Value>> &container,
 //  return str_join(temp, fields_sep);
 //}
 
-// inline string str_join_fields(const umap_str_opt &ref, string fields = ";",
-//                              string values = "=") {
-//  return join_fields(ref.begin(), ref.end(), fields, values);
-//}
-
-// inline string str_join_fields(const umap_str &ref, string fields = ";",
-//                              string values = "=") {
-//  return join_fields<string>(ref.begin(), ref.end(), fields, values);
-//}
-
-// inline string str_join_fields(const umap_str &ref, const vec_str &names,
-//                              string fields = ";", string values = "=") {
-//  return join_fields<string>(ref, names.begin(), names.end(), fields, values);
-//}
-
-// inline string str_join_fields(const umap_str_opt &ref, const vec_str &names,
-//                              string fields = ";", string values = "=") {
-//  return join_fields(ref, names.begin(), names.end(), fields, values);
-//}
-
-} // namespace StringCompose
+}  // namespace StringCompose
 
 namespace StringDecompose {
 
@@ -388,26 +351,22 @@ using Basic::segment;
 using Basic::split;
 
 inline vec_str str_split(const string &source, char sep, bool empty) {
-  if (!source.size())
-    return vec_str{};
+  if (!source.size()) return vec_str{};
 
   vec_str result{};
 
   split<string>(source.begin(), source.end(), sep, back_inserter(result));
 
-  if (!empty)
-    result.erase(remove(begin(result), end(result), ""), end(result));
+  if (!empty) result.erase(remove(begin(result), end(result), ""), end(result));
 
   return result;
 }
 
 inline vec_str str_split(const string &source, string sep = "\t",
                          bool empty = true) {
-  if (sep.empty() || source.empty())
-    return vec_str{source};
+  if (sep.empty() || source.empty()) return vec_str{source};
 
-  if (sep.size() == 1)
-    return str_split(source, sep[0], empty);
+  if (sep.size() == 1) return str_split(source, sep[0], empty);
 
   vec_str result{};
 
@@ -418,8 +377,7 @@ inline vec_str str_split(const string &source, string sep = "\t",
     split<string, defs>(begin(source), end(source), begin(sep), end(sep),
                         back_inserter(result));
 
-  if (!empty)
-    result.erase(remove(begin(result), end(result), ""), end(result));
+  if (!empty) result.erase(remove(begin(result), end(result), ""), end(result));
 
   return result;
 }
@@ -432,7 +390,42 @@ inline vec_str str_segment(const string &source, int length) {
   return result;
 }
 
-} // namespace StringDecompose
+inline string str_segment(const string &source, int length, string sep) {
+  if (!length || source.empty() ||
+      source.length() <= static_cast<size_t>(length))
+    return source;
+  else
+    return StringCompose::str_join(str_segment(source, length), sep);
+}
+
+using std::optional;
+using opt_str = optional<string>;
+using umap_str_opt = std::unordered_map<string, opt_str>;
+
+inline umap_str_opt str_map_fields(const string &source, char fields = ';',
+                                   char values = '=') {
+  if (!source.size()) return {};
+
+  umap_str_opt result{};
+
+  for (auto ele : str_split(source, fields, true)) {
+    const auto mark(ele.find(values));
+
+    string key{ele.substr(0, mark)};
+    auto value{string::npos == mark ? opt_str{} : ele.substr(mark + 1)};
+
+    if (auto [it, inserted] = result.try_emplace(key, value); !inserted) {
+      if (auto value = (*it).second)
+        throw runtime_error("Key " + key + "already in map -> " + *value);
+      else
+        throw runtime_error("Key " + key + "already in map -> None");
+    }
+  }
+
+  return result;
+}
+
+}  // namespace StringDecompose
 
 namespace StringSearch {
 
@@ -444,107 +437,15 @@ inline auto count_all(const string &source, char query, size_t pos = 0) {
   auto first =
       next(begin(source), (pos == string::npos) ? 0 : static_cast<long>(pos));
   auto last = end(source);
-  if (first > last)
-    return 0l;
+  if (first > last) return 0l;
   return count(first, last, query);
 }
-} // namespace StringSearch
 
-//
+}  // namespace StringSearch
 
-//
-// inline string str_devide(const string &source, size_t count, string sep) {
-//    if (!count || !source.length() || source.length() <= count)
-//        return source;
-//    else
-//        return str_join(str_split(source, count), sep);
-//}
-//
-
-//
-// template <typename Ite>
-// vec_str str_chunks(const string &source, Ite begin, Ite end) {
-//    vec_str result = {};
-//    size_t last = 0;
-//
-//    while (begin != end) {
-//        if (last >= source.length())
-//            break;
-//        else if (*begin < 0)
-//            ++begin;
-//        else {
-//            result.push_back(source.substr(last, *begin));
-//            last += *(begin++);
-//        }
-//    }
-//
-//    if (last < source.length())
-//        result.push_back(source.substr(last));
-//
-//    return result;
-//}
-//
-// inline umap_str vec_str_map(const vec_str &keys, const vec_str &values) {
-//  if (!keys.size() || keys.size() != values.size())
-//    throw runtime_error(
-//            "Invalid lengths of vectors: " + to_string(keys.size()) + " and "
-//            + to_string(values.size()));
-//  umap_str result{};
-//
-//  mapify(keys.begin(), keys.end(), values.begin(), values.end(),
-//         inserter(result, result.begin()));
-//
-//  if (result.size() != keys.size())
-//    throw runtime_error("Duplicated keys in vector with keys");
-//
-//  return result;
-//
-// inline umap_str str_map(const string &source, const vec_str &header,
-//                        bool clean = true, const string &sep = "\t") {
-//    if (!source.size())
-//        throw runtime_error("Empty Source!");
-//
-//    auto splitted = StrTol::str_split(source, sep, true);
-//
-//    if (splitted.size() != header.size())
-//        throw runtime_error("Source (" + to_string(splitted.size()) +
-//                            ") and Header(" + to_string(header.size()) +
-//                            ") differs in size!\n");
-//
-//    if (clean)
-//        transform(splitted.begin(), splitted.end(), splitted.begin(),
-//                  [](const string &ele) { return str_clean(ele); });
-//
-//    return vec_str_map(header, splitted);
-//}
-//
 //// Converts string containing fields separated with char fields and
 //// their values seperated by char values into map. If some field has no value,
 //// nullopt is inserted.
 //// Example: "K1=V1;K2;K3=" -> {{"K1", "V1"}, {"K2", nullopt}, "
-// inline umap_str_opt str_map_fields(const string &source, char fields = ';',
-//                                   char values = '=') {
-//    if (!source.size())
-//        return {};
-//
-//    umap_str_opt result{};
-//
-//    for (auto ele : str_split(source, fields, true)) {
-//        const auto mark(ele.find(values));
-//
-//        string key{ele.substr(0, mark)};
-//        auto value{string::npos == mark ? opt_str{} : ele.substr(mark + 1)};
-//
-//        if (auto [it, inserted] = result.try_emplace(key, value); !inserted) {
-//            if (auto value = (*it).second)
-//                throw runtime_error("Key " + key + "already in map -> " +
-//                *value);
-//            else
-//                throw runtime_error("Key " + key + "already in map -> None");
-//        }
-//    }
-//
-//    return result;
-//}
 
-} // namespace AGizmo
+}  // namespace AGizmo
