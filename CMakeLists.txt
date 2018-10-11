@@ -1,7 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
 project(pyAGizmo VERSION 0.1 LANGUAGES CXX)
 
-#set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Release)
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "/usr/lib/python3.6" CACHE PATH "..." FORCE)
+endif()
+
+if (NOT HEADER_INSTALL_PREFIX)
+    set(HEADER_INSTALL_PREFIX "/usr/local" CACHE PATH "..." FORCE)
+endif()
 
 add_subdirectory(pybind11)
 pybind11_add_module(pyAGizmo src/pyagizmo.cpp)
@@ -17,13 +25,11 @@ target_compile_options(pyAGizmo PRIVATE -march=x86-64 -mtune=native -O3 -g0
                        -fvisibility=hidden -Werror -Wall -pthread)
 target_compile_features(pyAGizmo PRIVATE cxx_std_17)
 
-install(TARGETS pyAGizmo
-		LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS pyAGizmo LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
 #install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include
 #        FILES_MATCHING PATTERN "*.h")
-install(DIRECTORY include/agizmo DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
-install(DIRECTORY . DESTINATION /opt/conda/lib/python3.6/
-        FILES_MATCHING PATTERN "*.so")
+
+install(DIRECTORY include/agizmo DESTINATION ${HEADER_INSTALL_PREFIX}/include)
 
 include(CTest)
 
