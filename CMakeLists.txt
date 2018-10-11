@@ -22,6 +22,8 @@ install(TARGETS pyAGizmo
 #install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include
 #        FILES_MATCHING PATTERN "*.h")
 install(DIRECTORY include/agizmo DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(DIRECTORY . DESTINATION /opt/conda/lib/python3.6/
+        FILES_MATCHING PATTERN "*.so")
 
 include(CTest)
 
