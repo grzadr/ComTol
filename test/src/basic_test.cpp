@@ -573,36 +573,31 @@ Stats check_open_file(bool verbose = false) {
 int perform_tests(bool verbose) {
   Stats result;
 
-  for (int i = 0; i < 2; ++i) {
-    bool verbose = i;
-    Stats result;
+  cout << gen_framed("Evaluating Common Tools") << "\n";
 
-    cout << gen_framed("Evaluating Common Tools") << "\n";
+  cout << "\n>>> Checking Basic functions" << endl;
+  result(check_XOR(verbose));
+  result(check_split(verbose));
+  result(check_segment(verbose));
+  result(check_merge(verbose));
+  cout << ">>> Done\n";
 
-    cout << "\n>>> Checking Basic functions" << endl;
-    result(check_XOR(verbose));
-    result(check_split(verbose));
-    result(check_segment(verbose));
-    result(check_merge(verbose));
-    cout << ">>> Done\n";
+  cout << "\n>>> Checking String functions" << endl;
+  result(check_only_digits(verbose));
+  result(check_str_to_int(verbose));
+  result(check_str_clean_ends(verbose));
+  result(check_str_clean(verbose));
+  result(check_str_join(verbose));
+  result(check_str_reverse(verbose));
+  result(check_str_split(verbose));
+  result(check_str_replace(verbose));
+  cout << ">>> Done\n";
 
-    cout << "\n>>> Checking String functions" << endl;
-    result(check_only_digits(verbose));
-    result(check_str_to_int(verbose));
-    result(check_str_clean_ends(verbose));
-    result(check_str_clean(verbose));
-    result(check_str_join(verbose));
-    result(check_str_reverse(verbose));
-    result(check_str_split(verbose));
-    result(check_str_replace(verbose));
-    cout << ">>> Done\n";
+  cout << "\n>>> Checking Files functions" << endl;
+  result(check_open_file(verbose));
+  cout << ">>> Done\n";
 
-    cout << "\n>>> Checking Files functions" << endl;
-    result(check_open_file(verbose));
-    cout << ">>> Done\n";
-
-    cout << "\n" << gen_summary(result, "Evaluation", true) << "\n";
-  }
+  cout << "\n" << gen_summary(result, "Evaluation", true) << "\n";
 
   return result.getFailed();
 }

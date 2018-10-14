@@ -26,9 +26,6 @@ target_compile_options(pyAGizmo PRIVATE -march=x86-64 -mtune=native -O3 -g0
 target_compile_features(pyAGizmo PRIVATE cxx_std_17)
 
 install(TARGETS pyAGizmo LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
-#install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include
-#        FILES_MATCHING PATTERN "*.h")
-
 install(DIRECTORY include/agizmo DESTINATION ${HEADER_INSTALL_PREFIX}/include)
 
 include(CTest)
