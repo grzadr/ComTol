@@ -116,6 +116,7 @@ public:
   }
   bool isValid() const { return status; }
   operator int() const { return this->isValid(); }
+  virtual string args() const = 0;
 };
 
 template <class Test> class Evaluator {
@@ -125,34 +126,35 @@ private:
   string name;
   const vector<Test> &tests;
   Stats result;
+  int width{80};
 
 public:
   Evaluator() = delete;
   ~Evaluator() = default;
-  Evaluator(string name, const vector<Test> &tests, Stats result = {})
-      : name{name}, tests{tests}, result{result} {}
+  Evaluator(string name, const vector<Test> &tests, Stats result = {},
+            int width = 80)
+      : name{name}, tests{tests}, result{result}, width{width} {}
 
   Stats verify(sstream &message) {
     auto number_width = static_cast<int>(log10(tests.size())) + 1;
 
     for (const auto &test : tests) {
-      message << "Test " << setw(number_width) << setfill('0') << right
-              << ++result << " " << setfill(' ') << setw(76 - number_width - 2);
+      auto signature = name + test.args();
+      message << setw(number_width) << setfill('0') << right << ++result << ") "
+              << signature << " " << setfill(' ')
+              << setw(80 - number_width - signature.size() - 3);
 
       if (test)
         message << passed_str << "\n";
       else {
         result.addFailure();
-        message << failed_str << "\nFunction: " << name << test << "\n";
+        message << failed_str << "\n" << test << "\n";
       }
     }
 
     return result;
   }
 };
-
-// inline const string passed_str{"[ PASSED ]"};
-// inline const string failed_str{"[~FAILED~]"};
 
 inline string gen_framed(const string &message, size_t width = 80,
                          char frame = '#') {
