@@ -21,6 +21,7 @@ using sstream = std::stringstream;
 
 using std::nullopt;
 using opt_int = std::optional<int>;
+using opt_str = std::optional<string>;
 
 using vec_str = vector<string>;
 
@@ -43,9 +44,9 @@ inline bool only_digits(const string &query) noexcept {
 inline opt_int str_to_int(const string &query, bool negative = false) {
   if (negative && query.find('-') == 0 && only_digits(query.substr(1)))
     return std::stoi(query);
-  if (only_digits(query))
+  else if (only_digits(query))
     return std::stoi(query);
-  return nullopt;
+  else return nullopt;
 }
 
 // Function converts time to string
