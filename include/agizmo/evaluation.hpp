@@ -49,10 +49,10 @@ using StringFormat::str_frame;
 namespace Evaluation {
 
 class Stats {
-private:
+ private:
   int total{0}, failed{0};
 
-public:
+ public:
   Stats() = default;
   Stats(int total, int failed = 0) : total{total}, failed{failed} {}
 
@@ -93,14 +93,15 @@ public:
   }
 };
 
-template <class Input, class Output> class BaseTest {
-protected:
+template <class Input, class Output>
+class BaseTest {
+ protected:
   const Input input;
   const Output expected;
   Output outcome;
   bool status;
 
-public:
+ public:
   BaseTest() = default;
   BaseTest(Input input, Output expected) : input{input}, expected{expected} {}
   virtual ~BaseTest() = default;
@@ -119,8 +120,9 @@ public:
   virtual string args() const = 0;
 };
 
-template <class Test> class Evaluator {
-private:
+template <class Test>
+class Evaluator {
+ private:
   const string passed_str{"[ PASSED ]"};
   const string failed_str{"<<FAILED>>"};
   string name;
@@ -128,28 +130,32 @@ private:
   Stats result;
   int width{80};
 
-public:
+ public:
   Evaluator() = delete;
   ~Evaluator() = default;
   Evaluator(string name, const vector<Test> &tests, Stats result = {},
             int width = 80)
       : name{name}, tests{tests}, result{result}, width{width} {}
 
-  Stats verify(sstream &message) {
+  Stats verify(sstream &message, sstream &failure) {
     auto number_width = static_cast<int>(log10(tests.size())) + 1;
 
     for (const auto &test : tests) {
+      sstream temp;
       auto signature = name + test.args();
-      message << setw(number_width) << setfill('0') << right << ++result << ") "
-              << signature << " " << setfill(' ')
-              << setw(80 - number_width - signature.size() - 3);
+      temp << setw(number_width) << setfill('0') << right << ++result << ") "
+           << signature << " " << setfill(' ')
+           << setw(80 - number_width - signature.size() - 3);
 
       if (test)
-        message << passed_str << "\n";
+        temp << passed_str << "\n";
       else {
         result.addFailure();
-        message << failed_str << "\n" << test << "\n";
+        temp << failed_str << "\n" << test << "\n";
+        failure << temp.str();
       }
+
+      message << temp.str();
     }
 
     return result;
@@ -167,8 +173,7 @@ inline string gen_framed(const string &message, size_t width = 80,
 }
 
 inline string gen_pretty(const string &message, size_t width = 80) {
-  if (width % 2)
-    ++width;
+  if (width % 2) ++width;
 
   string frame = string(width / 2, '<') + string(width / 2, '>');
   string result{frame};
@@ -192,6 +197,6 @@ inline string gen_summary(const Stats &stats, string type = "Evaluation",
   return framed ? gen_framed(message.str()) : message.str();
 }
 
-} // namespace Evaluation
+}  // namespace Evaluation
 
-} // namespace AGizmo
+}  // namespace AGizmo
