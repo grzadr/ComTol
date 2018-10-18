@@ -15,10 +15,8 @@ using std::vector;
 using std::boyer_moore_horspool_searcher;
 using std::boyer_moore_searcher;
 using std::default_searcher;
-template <typename It>
-using bmhs = boyer_moore_horspool_searcher<It>;
-template <typename It>
-using defs = default_searcher<It>;
+template <typename It> using bmhs = boyer_moore_horspool_searcher<It>;
+template <typename It> using defs = default_searcher<It>;
 
 namespace Basic {
 
@@ -59,7 +57,8 @@ inline OutIt constexpr split(InIt query, const InIt &query_end, SepIt sep,
     return output;
   }
 
-  if (dist == 1) return split<OutType>(query, query_end, *sep, output);
+  if (dist == 1)
+    return split<OutType>(query, query_end, *sep, output);
 
   auto found(search(query, query_end, Comp<SepIt>(sep, sep_end)));
 
@@ -74,14 +73,14 @@ inline OutIt constexpr split(InIt query, const InIt &query_end, SepIt sep,
 
 template <typename OutType, typename InIt, typename OutIt>
 inline OutIt constexpr segment(InIt query, const InIt &query_end, OutIt output,
-                               int length) {
-  if (!length || distance(query, query_end) <= length)
+                               size_t length) {
+  if (!length || static_cast<size_t>(distance(query, query_end)) <= length)
     *output++ = OutType(query, query_end);
   else {
     do {
       *output++ = OutType(query, next(query, length));
       query = next(query, length);
-    } while (distance(query, query_end) > length);
+    } while (static_cast<size_t>(distance(query, query_end)) > length);
 
     *output++ = OutType(query, query_end);
   }
@@ -91,7 +90,8 @@ inline OutIt constexpr segment(InIt query, const InIt &query_end, OutIt output,
 
 template <typename Type, typename InIt, typename OutIt>
 inline OutIt merge(InIt value, const InIt value_end, OutIt output, Type sep) {
-  if (value == value_end) return output;
+  if (value == value_end)
+    return output;
 
   *output++ = *value;
 
@@ -135,5 +135,5 @@ OutIt constexpr mapify(KeytIt kbegin, KeytIt kend, ValueIt vbegin, ValueIt vend,
   return output;
 }
 
-}  // namespace Basic
-}  // namespace AGizmo
+} // namespace Basic
+} // namespace AGizmo

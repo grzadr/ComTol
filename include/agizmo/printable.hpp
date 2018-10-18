@@ -1,16 +1,26 @@
 #pragma once
 
+#include <iomanip>
 #include <iostream>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include <agizmo/strings.hpp>
 
 namespace AGizmo::Printable {
+using std::cout;
+using std::endl;
+using std::fixed;
+using std::get;
+using std::holds_alternative;
+using std::is_same_v;
 using std::optional;
 using std::ostream;
+using std::setprecision;
 using std::string;
+using std::variant;
 using std::vector;
 
 template <typename Type> struct PrintableVector {
@@ -88,19 +98,45 @@ template <typename Type = int> struct NestedVector {
   }
 };
 
-template <class Type> struct PrintableOptional {
-  std::optional<Type> value{std::nullopt};
+template <typename T> string type_name();
 
-  string str() const noexcept {
-    return value == std::nullopt ? "std::nullopt" : to_string(*value);
+template <class Type> class PrintableOptional {
+private:
+  variant<optional<Type>, optional<pair<Type, Type>>> value;
+  //  optional<Type> value{std::nullopt};
+
+public:
+  PrintableOptional() = delete;
+  PrintableOptional(const optional<Type> value) : value{value} {}
+  PrintableOptional(const optional<pair<Type, Type>> value) : value{value} {}
+  virtual ~PrintableOptional() = default;
+
+  virtual string str() const noexcept {
+    sstream result;
+    if (holds_alternative<optional<pair<Type, Type>>>(value)) {
+      if (const auto &item = get<1>(value); item)
+        result << (*item).first << ";" << (*item).second;
+      else
+        result << "None";
+    } else {
+      if (const auto &item = get<0>(value); item) {
+        //        if constexpr (is_same_v<Type, int>)
+        //          cout << "INT: " << *item << endl;
+        //        else if constexpr (is_same_v<Type, double>)
+        //          //        result << setprecision(6) << *item;
+        //          cout << "DOUBLE: " << *item << endl;
+        //        else
+        //          cout << "OTHER: " << *item << endl;
+        result << setprecision(6) << fixed << *item;
+      } else
+        result << "None";
+    }
+    return result.str();
   }
 
   friend ostream &operator<<(ostream &stream, const PrintableOptional &item) {
     return stream << item.str();
   }
-
-  PrintableOptional() = default;
-  PrintableOptional(const std::optional<Type> value) : value{value} {}
 
   bool operator==(const PrintableOptional<Type> &other) {
     return this->value == other.value;

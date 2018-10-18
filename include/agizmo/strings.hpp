@@ -46,7 +46,8 @@ inline opt_int str_to_int(const string &query, bool negative = false) {
     return std::stoi(query);
   else if (only_digits(query))
     return std::stoi(query);
-  else return nullopt;
+  else
+    return nullopt;
 }
 
 // Function converts time to string
@@ -404,7 +405,7 @@ inline vec_str str_split(const string &source, string sep = "\t",
   return result;
 }
 
-inline vec_str str_segment(const string &source, int length) {
+inline vec_str str_segment(const string &source, size_t length) {
   vec_str result = {};
 
   segment<string>(source.begin(), source.end(), back_inserter(result), length);
@@ -412,9 +413,10 @@ inline vec_str str_segment(const string &source, int length) {
   return result;
 }
 
-inline string str_segment(const string &source, int length, string sep) {
+inline string str_segment(const string &source, size_t length, string sep) {
   if (!length || source.empty() ||
-      source.length() <= static_cast<size_t>(length))
+      //      source.length() <= static_cast<size_t>(length))
+      source.length() <= length)
     return source;
   else
     return StringCompose::str_join(str_segment(source, length), sep);
