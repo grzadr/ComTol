@@ -49,10 +49,10 @@ using StringFormat::str_frame;
 namespace Evaluation {
 
 class Stats {
- private:
+private:
   int total{0}, failed{0};
 
- public:
+public:
   Stats() = default;
   Stats(int total, int failed = 0) : total{total}, failed{failed} {}
 
@@ -93,15 +93,14 @@ class Stats {
   }
 };
 
-template <class Input, class Output>
-class BaseTest {
- protected:
+template <class Input, class Output> class BaseTest {
+protected:
   const Input input;
   const Output expected;
   Output outcome;
   bool status;
 
- public:
+public:
   BaseTest() = default;
   BaseTest(Input input, Output expected) : input{input}, expected{expected} {}
   virtual ~BaseTest() = default;
@@ -110,19 +109,18 @@ class BaseTest {
     return stream << item.str();
   }
 
-  virtual bool validate() = 0;
   bool setStatus(bool status) {
     this->status = status;
     return this->status;
   }
   bool isValid() const { return status; }
   operator int() const { return this->isValid(); }
+  virtual bool validate() = 0;
   virtual string args() const = 0;
 };
 
-template <class Test>
-class Evaluator {
- private:
+template <class Test> class Evaluator {
+private:
   const string passed_str{"[ PASSED ]"};
   const string failed_str{"<<FAILED>>"};
   string name;
@@ -130,7 +128,7 @@ class Evaluator {
   Stats result;
   int width{80};
 
- public:
+public:
   Evaluator() = delete;
   ~Evaluator() = default;
   Evaluator(string name, const vector<Test> &tests, Stats result = {},
@@ -173,7 +171,8 @@ inline string gen_framed(const string &message, size_t width = 80,
 }
 
 inline string gen_pretty(const string &message, size_t width = 80) {
-  if (width % 2) ++width;
+  if (width % 2)
+    ++width;
 
   string frame = string(width / 2, '<') + string(width / 2, '>');
   string result{frame};
@@ -197,6 +196,6 @@ inline string gen_summary(const Stats &stats, string type = "Evaluation",
   return framed ? gen_framed(message.str()) : message.str();
 }
 
-}  // namespace Evaluation
+} // namespace Evaluation
 
-}  // namespace AGizmo
+} // namespace AGizmo

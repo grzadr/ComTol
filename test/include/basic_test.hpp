@@ -21,8 +21,6 @@ using pair_bool = pair<bool, bool>;
 using pair_char = pair<char, char>;
 using pair_int = pair<int, int>;
 
-template <typename It> Stats test_XOR(It begin, It end, sstream &message);
-
 template <typename Type> struct PrintableVector {
   vector<Type> value{};
 
@@ -122,14 +120,18 @@ public:
   XORWithBool(pair_bool input, bool expected);
 
   string str() const noexcept {
-    return "(" + to_string(input.first) + ", " + to_string(this->input.second) +
-           ")\n Outcome: " + to_string(outcome) +
+    return "Outcome: " + to_string(outcome) +
            "\nExpected: " + to_string(expected);
   }
 
   bool validate() {
     outcome = Basic::XOR(input.first, input.second);
     return this->setStatus(outcome == expected);
+  }
+
+  string args() const {
+    return "(" + to_string(input.first) + ", " + to_string(this->input.second) +
+           ")";
   }
 };
 
@@ -138,14 +140,18 @@ public:
   XORWithChar(pair_char input, bool expected);
 
   string str() const noexcept {
-    return "(" + to_string(input.first) + ", " + to_string(this->input.second) +
-           ")\n Outcome: " + to_string(outcome) +
+    return "Outcome: " + to_string(outcome) +
            "\nExpected: " + to_string(expected);
   }
 
   bool validate() {
     outcome = Basic::XOR(input.first, input.second);
     return this->setStatus(outcome == expected);
+  }
+
+  string args() const {
+    return "(" + to_string(input.first) + ", " + to_string(this->input.second) +
+           ")";
   }
 };
 
@@ -161,8 +167,7 @@ public:
                            NestedVector<int> expected);
 
   string str() const noexcept {
-    return "(" + this->input.elements.str() + ", " + input.sep.str() +
-           ")\n Outcome: " + outcome.str() + "\nExpected: " + expected.str();
+    return "Outcome: " + outcome.str() + "\nExpected: " + expected.str();
   }
 
   bool validate() {
@@ -172,6 +177,10 @@ public:
         back_inserter(this->outcome.values));
     return this->setStatus(outcome == expected);
   }
+
+  string args() const {
+    return "(" + this->input.elements.str() + ", " + input.sep.str() + ")";
+  }
 };
 
 class SplitVectorWithSep
@@ -180,8 +189,7 @@ public:
   SplitVectorWithSep(InputVectorSep<int> input, NestedVector<int> expected);
 
   string str() const noexcept {
-    return "(" + this->input.elements.str() + ", " + to_string(input.sep) +
-           ")\n Outcome: " + outcome.str() + "\nExpected: " + expected.str();
+    return "Outcome: " + outcome.str() + "\nExpected: " + expected.str();
   }
 
   bool validate() {
@@ -189,6 +197,10 @@ public:
         this->input.elements.begin(), this->input.elements.end(),
         this->input.sep, back_inserter(this->outcome.values));
     return this->setStatus(outcome == expected);
+  }
+
+  string args() const {
+    return "(" + this->input.elements.str() + ", " + to_string(input.sep) + ")";
   }
 };
 
@@ -209,8 +221,12 @@ public:
   }
 
   string str() const noexcept {
+    return "Outcome: " + outcome.str() + "\nExpected: " + expected.str();
+  }
+
+  string args() const {
     return "(" + this->input.elements.str() + ", " + to_string(input.length) +
-           ")\n Outcome: " + outcome.str() + "\nExpected: " + expected.str();
+           ")";
   }
 };
 
@@ -218,13 +234,16 @@ class MergeVector : public BaseTest<InputVectorSep<int>, PrintableVector<int>> {
 public:
   MergeVector(InputVectorSep<int> input, PrintableVector<int> expected);
   string str() const noexcept {
-    return "(" + this->input.elements.str() + ", " + to_string(input.sep) +
-           ")\n Outcome: " + outcome.str() + "\nExpected: " + expected.str();
+    return "Outcome: " + outcome.str() + "\nExpected: " + expected.str();
   }
   bool validate() {
     Basic::merge(input.elements.begin(), input.elements.cend(),
                  back_inserter(outcome.value), input.sep);
     return this->setStatus(outcome == expected);
+  }
+
+  string args() const {
+    return "(" + this->input.elements.str() + ", " + to_string(input.sep) + ")";
   }
 };
 
@@ -233,7 +252,7 @@ public:
   OnlyDigits(string input, bool expected);
 
   string str() const noexcept {
-    return "(" + this->input + ")\n Outcome: " + to_string(outcome) +
+    return "Outcome: " + to_string(outcome) +
            "\nExpected: " + to_string(expected);
   }
 
@@ -241,6 +260,8 @@ public:
     outcome = StringFormat::only_digits(input);
     return this->setStatus(outcome == expected);
   }
+
+  string args() const { return "(" + this->input + ")"; }
 };
 
 class StrToInt : public BaseTest<string, PrintableOptional<int>> {
@@ -248,14 +269,15 @@ public:
   StrToInt(string input, PrintableOptional<int> expected);
 
   string str() const noexcept {
-    return "(" + this->input + ")\n Outcome: " + outcome.str() +
-           "\nExpected: " + expected.str();
+    return "Outcome: " + outcome.str() + "\nExpected: " + expected.str();
   }
 
   bool validate() {
     outcome = PrintableOptional(StringFormat::str_to_int(input));
     return this->setStatus(outcome == expected);
   }
+
+  string args() const { return "(" + this->input + ")"; }
 };
 
 class StrCleanEnds : public BaseTest<string, string> {
@@ -263,14 +285,15 @@ public:
   StrCleanEnds(string input, string expected);
 
   string str() const noexcept {
-    return "(" + this->input + ")\n Outcome: " + outcome +
-           "\nExpected: " + expected;
+    return "Outcome: " + outcome + "\nExpected: " + expected;
   }
 
   bool validate() {
     outcome = StringFormat::str_clean_ends(input);
     return this->setStatus(outcome == expected);
   }
+
+  string args() const { return "(" + this->input + ")"; }
 };
 
 struct StrCleanWithCharsInput {
@@ -282,13 +305,16 @@ public:
   StrCleanEndsWithChars(StrCleanWithCharsInput input, string expected);
 
   string str() const noexcept {
-    return "(" + this->input.query + ", " + input.chars +
-           ")\n Outcome: " + outcome + "\nExpected: " + expected;
+    return "Outcome: " + outcome + "\nExpected: " + expected;
   }
 
   bool validate() {
     outcome = StringFormat::str_clean_ends(input.query, input.chars);
     return this->setStatus(outcome == expected);
+  }
+
+  string args() const {
+    return "(" + this->input.query + ", " + input.chars + ")";
   }
 };
 
@@ -297,14 +323,15 @@ public:
   StrClean(string input, string expected);
 
   string str() const noexcept {
-    return "(" + this->input + ")\n Outcome: " + outcome +
-           "\nExpected: " + expected;
+    return "Outcome: " + outcome + "\nExpected: " + expected;
   }
 
   bool validate() {
     outcome = StringFormat::str_clean(input);
     return this->setStatus(outcome == expected);
   }
+
+  string args() const { return "(" + this->input + ")"; }
 };
 
 class StrCleanWithChars : public BaseTest<StrCleanWithCharsInput, string> {
@@ -312,13 +339,16 @@ public:
   StrCleanWithChars(StrCleanWithCharsInput input, string expected);
 
   string str() const noexcept {
-    return "(" + this->input.query + ", " + input.chars +
-           ")\n Outcome: " + outcome + "\nExpected: " + expected;
+    return "Outcome: " + outcome + "\nExpected: " + expected;
   }
 
   bool validate() {
     outcome = StringFormat::str_clean(input.query, true, input.chars);
     return this->setStatus(outcome == expected);
+  }
+
+  string args() const {
+    return "(" + this->input.query + ", " + input.chars + ")";
   }
 };
 
@@ -327,14 +357,15 @@ public:
   StrJoin(PrintableVector<int> input, string expected);
 
   string str() const noexcept {
-    return "(" + this->input.str() + ")\n Outcome: " + outcome +
-           "\nExpected: " + expected;
+    return "Outcome: " + outcome + "\nExpected: " + expected;
   }
 
   bool validate() {
     outcome = StringCompose::str_join(input.begin(), input.end(), "-");
     return this->setStatus(outcome == expected);
   }
+
+  string args() const { return "(" + this->input.str() + ")"; }
 };
 
 class StrReverse : public BaseTest<string, string> {
@@ -342,14 +373,15 @@ public:
   StrReverse(string input, string expected);
 
   string str() const noexcept {
-    return "(" + this->input + ")\n Outcome: " + outcome +
-           "\nExpected: " + expected;
+    return "Outcome: " + outcome + "\nExpected: " + expected;
   }
 
   bool validate() {
     outcome = StringFormat::str_reverse(input);
     return this->setStatus(outcome == expected);
   }
+
+  string args() const { return "(" + this->input + ")"; }
 };
 
 class StrSplit : public BaseTest<pair_str, PrintableVector<string>> {
@@ -357,14 +389,17 @@ public:
   StrSplit(pair_str input, PrintableVector<string> expected);
 
   string str() const noexcept {
-    return "(" + this->input.first + "," + input.second +
-           ")\n Outcome: " + outcome.str() + "\nExpected: " + expected.str();
+    return "Outcome: " + outcome.str() + "\nExpected: " + expected.str();
   }
 
   bool validate() {
     outcome =
         PrintableVector(StringDecompose::str_split(input.first, input.second));
     return this->setStatus(outcome == expected);
+  }
+
+  string args() const {
+    return "(" + this->input.first + "," + input.second + ")";
   }
 };
 
@@ -377,13 +412,17 @@ public:
   StrReplace(StrReplaceInput input, string expected);
 
   string str() const noexcept {
-    return "(" + this->input.source + "," + input.query + "," + input.value +
-           ")\n Outcome: " + outcome + "\nExpected: " + expected;
+    return "Outcome: " + outcome + "\nExpected: " + expected;
   }
 
   bool validate() {
     outcome = StringFormat::str_replace(input.source, input.query, input.value);
     return this->setStatus(outcome == expected);
+  }
+
+  string args() const {
+    return "(" + this->input.source + "," + input.query + "," + input.value +
+           ")";
   }
 };
 
@@ -392,8 +431,7 @@ public:
   OpenFile(string input, string expected);
 
   string str() const noexcept {
-    return "(" + this->input + ")\n Outcome: " + outcome +
-           "\nExpected: " + expected;
+    return "Outcome: " + outcome + "\nExpected: " + expected;
   }
 
   bool validate() {
@@ -411,4 +449,6 @@ public:
 
     return this->setStatus(outcome == expected);
   }
+
+  string args() const { return "(" + this->input + ")"; }
 };
