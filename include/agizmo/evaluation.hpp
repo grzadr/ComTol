@@ -138,7 +138,7 @@ class Evaluator {
   ~Evaluator() = default;
   Evaluator(string name, const vector<Test> &tests, Stats result = {},
             int width = 80)
-      : name{name}, tests{tests}, result{result}, width{width} {}
+      : name{name}, tests{tests}, width{width}, result{result} {}
 
   Stats verify() {
     auto number_width = static_cast<int>(log10(tests.size())) + 1;

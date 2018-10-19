@@ -22,11 +22,10 @@ using std::to_string;
 
 Stats check_XOR(bool verbose = false) {
   Stats result;
-  sstream message, failure;
+  sstream message;
 
-  message << "~~~ Checking Basic::XOR\n";
-
-  message << "\nBoolean Test:\n";
+  message << "~~~ Checking Basic::XOR\n"
+          << "\nBoolean Test:\n";
 
   vector<XORWithBool> set_xor_with_bool{
       {{false, false}, false},
@@ -36,15 +35,14 @@ Stats check_XOR(bool verbose = false) {
   };
 
   Evaluator xor_with_bool("Basic::XOR", set_xor_with_bool);
-  result(xor_with_bool.verify(message, failure));
+  result(xor_with_bool.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << xor_with_bool.message << "\n";
+  else if (xor_with_bool.hasFailed())
+    cout << message.str() << xor_with_bool.failed << "\n";
 
   message.clear();
-  failure.clear();
 
   message << "\nChar Test:\n";
 
@@ -56,14 +54,12 @@ Stats check_XOR(bool verbose = false) {
   };
 
   Evaluator xor_with_char("Basic::XOR", set_xor_with_char);
-  result(xor_with_char.verify(message, failure));
-
-  message << "\n";
+  result(xor_with_char.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << xor_with_char.message << "\n";
+  else if (xor_with_char.hasFailed())
+    cout << message.str() << xor_with_char.failed << "\n";
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::XOR") << endl;
 
@@ -72,11 +68,10 @@ Stats check_XOR(bool verbose = false) {
 
 Stats check_split(bool verbose = false) {
   Stats result;
-  sstream message, failure;
+  sstream message;
 
-  message << "\n~~~ Checking Basic::split\n";
-
-  message << "\nTesting vector<int> with int separator:\n";
+  message << "\n~~~ Checking Basic::split\n"
+          << "\nTesting vector<int> with int separator:\n";
 
   vector<SplitVectorWithSep> tests_int = {
       {{{}, 2}, {{}}},
@@ -92,15 +87,14 @@ Stats check_split(bool verbose = false) {
   };
 
   Evaluator test_split_int("Basic::split", tests_int);
-  result(test_split_int.verify(message, failure));
+  result(test_split_int.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << test_split_int.message << "\n";
+  else if (test_split_int.hasFailed())
+    cout << message.str() << test_split_int.failed << "\n";
 
   message.clear();
-  failure.clear();
 
   message << "\nTesting vector<int> with "
              "vector<int> separator:\n";
@@ -127,14 +121,12 @@ Stats check_split(bool verbose = false) {
   };
 
   Evaluator test_split("Basic::split", tests);
-  result(test_split.verify(message, failure));
-
-  message << "\n";
+  result(test_split.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << test_split.message << "\n";
+  else if (test_split.hasFailed())
+    cout << message.str() << test_split.failed << "\n";
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::split function")
        << endl;
@@ -144,7 +136,7 @@ Stats check_split(bool verbose = false) {
 
 Stats check_segment(bool verbose) {
   Stats result;
-  sstream message, failure;
+  sstream message;
 
   message << "\n~~~ Checking Basic::segment\n\nTesting vector<int>:\n";
 
@@ -158,16 +150,13 @@ Stats check_segment(bool verbose) {
       {{{1, 2, 3, 1, 2}, 3}, {{1, 2, 3}, {1, 2}}},
   };
 
-  Evaluator test_segment("Basic::segment", tests);
-
-  result(test_segment.verify(message, failure));
-
-  message << "\n";
+  Evaluator eval("Basic::segment", tests);
+  result(eval.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << eval.message << "\n";
+  else if (eval.hasFailed())
+    cout << message.str() << eval.failed << "\n";
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::segment function")
        << endl;
@@ -187,16 +176,13 @@ Stats check_merge(bool verbose) {
       {{{1, 2}, 0}, {1, 0, 2}},
   };
 
-  Evaluator test_segment("Basic::merge", tests);
-
-  result(test_segment.verify(message, failure));
-
-  message << "\n";
+  Evaluator eval("Basic::merge", tests);
+  result(eval.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << eval.message << "\n";
+  else if (eval.hasFailed())
+    cout << message.str() << eval.failed << "\n";
 
   cout << "~~~ " << gen_summary(result, "Checking Basic::merge function")
        << endl;
@@ -206,7 +192,7 @@ Stats check_merge(bool verbose) {
 
 Stats check_only_digits(bool verbose) {
   Stats result;
-  sstream message, failure;
+  sstream message;
 
   message << "\n~~~ Checking StringFormat::only_digits\n\nTesting strings:\n";
 
@@ -215,16 +201,13 @@ Stats check_only_digits(bool verbose) {
       {"3.14", false}, {"10E2", false}, {"10e2", false},
   };
 
-  Evaluator test_segment("StringFormat::only_digits", tests);
-
-  result(test_segment.verify(message, failure));
-
-  message << "\n";
+  Evaluator eval("StringFormat::only_digits", tests);
+  result(eval.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << eval.message << "\n";
+  else if (eval.hasFailed())
+    cout << message.str() << eval.failed << "\n";
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::only_digits function")
@@ -248,16 +231,13 @@ Stats check_str_to_int(bool verbose) {
       {"123-456", {PrintableOptional<int>()}},
   };
 
-  Evaluator test_segment("StringFormat::str_to_int", tests);
-
-  result(test_segment.verify(message, failure));
-
-  message << "\n";
+  Evaluator eval("StringFormat::str_to_int", tests);
+  result(eval.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << eval.message << "\n";
+  else if (eval.hasFailed())
+    cout << message.str() << eval.failed << "\n";
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_to_int function")
@@ -268,7 +248,7 @@ Stats check_str_to_int(bool verbose) {
 
 Stats check_str_clean_ends(bool verbose) {
   Stats result;
-  sstream message, failure;
+  sstream message;
 
   message << "\n~~~ Checking StringFormat::str_clean_ends\n"
           << "\nTesting strings with default parameters:\n";
@@ -282,17 +262,15 @@ Stats check_str_clean_ends(bool verbose) {
       {"A  B \t ", "A  B"},
   };
 
-  Evaluator test_clean("StringFormat::str_clean_ends", tests);
-
-  result(test_clean.verify(message, failure));
+  Evaluator eval("StringFormat::str_clean_ends", tests);
+  result(eval.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << eval.message << "\n";
+  else if (eval.hasFailed())
+    cout << message.str() << eval.failed << "\n";
 
   message.clear();
-  failure.clear();
 
   message << "\nTesting strings with default parameters:\n";
 
@@ -307,15 +285,12 @@ Stats check_str_clean_ends(bool verbose) {
 
   Evaluator test_clean_with_chars("StringFormat::str_clean_ends",
                                   tests_with_chars);
-
-  result(test_clean_with_chars.verify(message, failure));
-
-  message << "\n";
+  result(test_clean_with_chars.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << test_clean_with_chars.message << "\n";
+  else if (test_clean_with_chars.hasFailed())
+    cout << message.str() << test_clean_with_chars.failed << "\n";
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_clean_ends function")
@@ -338,16 +313,14 @@ Stats check_str_clean(bool verbose) {
   };
 
   Evaluator test_clean("StringFormat::str_clean", tests);
-
-  result(test_clean.verify(message, failure));
+  result(test_clean.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << test_clean.message << "\n";
+  else if (test_clean.hasFailed())
+    cout << message.str() << test_clean.failed << "\n";
 
   message.clear();
-  failure.clear();
 
   message << "\nTesting strings with default parameters:\n";
 
@@ -362,14 +335,12 @@ Stats check_str_clean(bool verbose) {
 
   Evaluator test_clean_with_chars("StringFormat::str_clean", tests_with_chars);
 
-  result(test_clean_with_chars.verify(message, failure));
-
-  message << "\n";
+  result(test_clean_with_chars.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << test_clean_with_chars.message << "\n";
+  else if (test_clean_with_chars.hasFailed())
+    cout << message.str() << test_clean_with_chars.failed << "\n";
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_clean function")
@@ -392,15 +363,12 @@ Stats check_str_join(bool verbose) {
   };
 
   Evaluator test_join("StringFormat::str_join", tests);
-
-  result(test_join.verify(message, failure));
-
-  message << "\n";
+  result(test_join.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << test_join.message << "\n";
+  else if (test_join.hasFailed())
+    cout << message.str() << test_join.failed << "\n";
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_join function")
@@ -424,14 +392,12 @@ Stats check_str_reverse(bool verbose) {
 
   Evaluator test_reverse("StringFormat::str_join", tests);
 
-  result(test_reverse.verify(message, failure));
-
-  message << "\n";
+  result(test_reverse.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << test_reverse.message << "\n";
+  else if (test_reverse.hasFailed())
+    cout << message.str() << test_reverse.failed << "\n";
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_reverse function")
@@ -466,14 +432,12 @@ Stats check_str_split(bool verbose) {
 
   Evaluator test_split("StringFormat::str_split", tests);
 
-  result(test_split.verify(message, failure));
-
-  message << "\n";
+  result(test_split.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << test_split.message << "\n";
+  else if (test_split.hasFailed())
+    cout << message.str() << test_split.failed << "\n";
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_split function")
@@ -508,15 +472,12 @@ Stats check_str_replace(bool verbose) {
   };
 
   Evaluator test_replace("StringFormat::str_split", tests);
-
-  result(test_replace.verify(message, failure));
-
-  message << "\n";
+  result(test_replace.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << test_replace.message << "\n";
+  else if (test_replace.hasFailed())
+    cout << message.str() << test_replace.failed << "\n";
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_replace function")
@@ -551,15 +512,12 @@ Stats check_join_fields(bool verbose) {
   };
 
   Evaluator test_replace("StringFormat::str_split", tests);
-
-  result(test_replace.verify(message, failure));
-
-  message << "\n";
+  result(test_replace.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << test_replace.message << "\n";
+  else if (test_replace.hasFailed())
+    cout << message.str() << test_replace.failed << "\n";
 
   cout << "~~~ "
        << gen_summary(result, "Checking StringFormat::str_replace function")
@@ -576,15 +534,12 @@ Stats check_open_file(bool verbose = false) {
   vector<OpenFile> tests = {{"TEST", "TEST"}};
 
   Evaluator test_open_file("Files::open_file", tests);
-
-  result(test_open_file.verify(message, failure));
-
-  message << "\n";
+  result(test_open_file.verify());
 
   if (verbose)
-    cout << message.str();
-  else if (result.hasFailed())
-    cout << failure.str();
+    cout << message.str() << test_open_file.message << "\n";
+  else if (test_open_file.hasFailed())
+    cout << message.str() << test_open_file.failed << "\n";
 
   cout << "~~~ " << gen_summary(result, "Checking Files::open_file function")
        << endl;
