@@ -160,6 +160,19 @@ public:
   }
 };
 
+inline string remove_passed(const string &message, size_t end = 10) {
+  sstream result;
+
+  for (const auto &line : StringDecompose::str_split(message, "\n", false)) {
+    if (line.size() > end && line.substr(line.size() - end) == "[ PASSED ]")
+      continue;
+    //    cout << quoted(line) << endl;
+    result << line << "\n";
+  }
+
+  return result.str();
+}
+
 inline string gen_framed(const string &message, size_t width = 80,
                          char frame = '#') {
   string result{string(width, frame) + "\n"};
