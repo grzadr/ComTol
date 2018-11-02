@@ -2,22 +2,82 @@
 
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
-namespace AGizmo {
+namespace AGizmo::Files {
 
-namespace Files {
-
+using std::getline;
 using std::ifstream;
 using std::string;
+using std::string_view;
+using opt_str = std::optional<string>;
+using std::nullopt;
+using runerror = std::runtime_error;
 
-inline void open_file(const string &file_name, ifstream &stream) {
-  stream = ifstream(file_name);
+// inline void open_file(const string &file_name, ifstream &stream) {
+inline void open_file(string_view file_name, ifstream& stream) {
+  stream = ifstream(file_name.data());
   if (!stream.is_open())
-    throw std::runtime_error{"Can't open '" + file_name + "'\n"};
+    throw runerror{"Can't open '" + string(file_name.data()) + "'\n"};
 }
 
-} // namespace Files
+class FileReader {
+ private:
+  ifstream input;
+  string line{};
 
-} // namespace AGizmo
+ public:
+  FileReader() = delete;
+
+  FileReader(string_view file_name) { open_file(file_name, input); }
+
+  ~FileReader() { input.close(); }
+
+  string getLine() { return line; }
+
+  bool readLine(const string& skip = {}) {
+    if (skip.empty())
+      getline(input, line);
+    else
+      while (getline(input, line) && line.find_first_of(skip) == 0) continue;
+
+    return input.good();
+  }
+
+  bool readLine(int skip) {
+    for (int i = 0; i < skip; ++i) {
+      getline(input, line);
+      if (!input) break;
+    }
+    return input.good();
+  }
+
+  bool readLineInto(string& external, const string& skip = {}) {
+    if (skip.empty())
+      getline(input, external);
+    else
+      while (getline(input, external) && external.find_first_of(skip) == 0)
+        continue;
+    return input.good();
+  }
+
+  bool readLineInto(string& external, int skip) {
+    for (int i = 0; i < skip; ++i) {
+      getline(input, external);
+      if (!input) break;
+    }
+    return input.good();
+  }
+
+  opt_str operator()(const string& skip = {}) {
+    if (readLine(skip))
+      return line;
+    else
+      return nullopt;
+  }
+};
+
+}  // namespace AGizmo::Files
