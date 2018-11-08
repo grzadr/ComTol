@@ -1,14 +1,15 @@
 #pragma once
 
-#include <chrono>
-#include <functional>
-#include <optional>
+#include <iostream>
 
+#include <chrono>
+#include <cmath>
+#include <functional>
 #include <iomanip>
+#include <map>
+#include <optional>
 #include <sstream>
 #include <string>
-
-#include <map>
 
 #include "basic.hpp"
 
@@ -63,6 +64,34 @@ template <typename Type> string str_time(std::chrono::duration<Type> time) {
           << std::setw(2) << seconds;
 
   return message.str();
+}
+
+using std::abs;
+using std::log10;
+
+inline string str_double(double number, int step = 3, int precision = 0) {
+  sstream output;
+
+  if (step) {
+    if (const auto magnitude = log10(number); abs(magnitude) > step) {
+      if (precision)
+        output << std::scientific << std::setprecision(precision) << number;
+      else
+        output << std::fixed << std::scientific
+               << std::setprecision(std::numeric_limits<double>::digits10 + 1)
+               << number;
+    } else
+      output << std::fixed << std::setprecision(step) << number;
+  } else {
+    if (precision)
+      output << std::fixed << std::setprecision(precision) << number;
+    else
+      output << std::fixed
+             << std::setprecision(std::numeric_limits<double>::digits10 + 1)
+             << number;
+  }
+
+  return output.str();
 }
 
 // Function cleans string's ends from whitespace characters.
@@ -424,14 +453,14 @@ inline string str_segment(const string &source, size_t length, string sep) {
 
 using std::optional;
 using opt_str = optional<string>;
-using umap_str_opt = std::unordered_map<string, opt_str>;
+using map_str_opt = std::unordered_map<string, opt_str>;
 
-inline umap_str_opt str_map_fields(const string &source, char fields = ';',
-                                   char values = '=') {
+inline map_str_opt str_map_fields(const string &source, char fields = ';',
+                                  char values = '=') {
   if (!source.size())
     return {};
 
-  umap_str_opt result{};
+  map_str_opt result{};
 
   for (auto ele : str_split(source, fields, true)) {
     const auto mark(ele.find(values));

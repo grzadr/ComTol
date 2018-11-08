@@ -2,6 +2,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <optional>
 #include <string>
 #include <variant>
@@ -140,6 +141,84 @@ public:
 
   bool operator==(const PrintableOptional<Type> &other) {
     return this->value == other.value;
+  }
+};
+
+template <class Key, class Value>
+using values_map = std::unordered_map<Key, Value>;
+
+class PrintableStrMap {
+private:
+  values_map<string, opt_str> items{};
+  vector<string> keys{};
+
+public:
+  PrintableStrMap() = default;
+  PrintableStrMap(const string &source, char names = ';', char values = '=') {
+    map_fields(source, names, values);
+  }
+
+  auto begin() const { return items.begin(); }
+  auto end() const { return items.end(); }
+  auto cbegin() const { return items.cbegin(); }
+  auto cend() const { return items.cend(); }
+
+  auto keys_begin() const { return keys.begin(); }
+  auto keys_end() const { return keys.end(); }
+  auto keys_cbegin() const { return keys.cbegin(); }
+  auto keys_cend() const { return keys.cend(); }
+
+  auto at(const string &key) { return items.at(key); }
+
+  void map_fields(const string &source, char names = ';', char values = '=') {
+    if (!source.size())
+      return;
+
+    for (auto ele : StringDecompose::str_split(source, names, true)) {
+      const auto mark(ele.find(values));
+
+      string key{ele.substr(0, mark)};
+      auto value{string::npos == mark ? opt_str{} : ele.substr(mark + 1)};
+
+      if (auto [it, inserted] = items.try_emplace(key, value); !inserted) {
+        if (auto value = (*it).second)
+          throw runtime_error("Key " + key + "already in map -> " + *value);
+        else
+          throw runtime_error("Key " + key + "already in map -> None");
+      } else {
+        keys.emplace_back((*it).first);
+      }
+    }
+  }
+
+  string join_fields(bool ordered = true, char names = ';',
+                     char values = '=') const {
+    if (items.empty())
+      return "";
+
+    sstream output;
+
+    if (ordered) {
+      for (const auto &key : keys) {
+        output << names << key;
+        if (const auto &value = items.at(key))
+          output << values << *value;
+      }
+    } else {
+      for (const auto &[key, value] : items) {
+        output << names << key;
+        if (value)
+          output << values << *value;
+      }
+    }
+
+    return output.str().substr(1);
+  }
+
+  string str() const { return join_fields(); }
+
+  friend ostream &operator<<(ostream &stream, const PrintableStrMap &item) {
+    return stream << item.str();
   }
 };
 } // namespace AGizmo::Printable
