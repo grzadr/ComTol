@@ -42,8 +42,9 @@ struct PrintableVector {
     return "{" + StringCompose::str_join(value.begin(), value.end(), ",") + "}";
   }
 
-  auto begin() const noexcept { return value.begin(); }
-  auto end() const noexcept { return value.end(); }
+  auto begin() noexcept { return value.begin(); }
+  auto cbegin() const noexcept { return value.cbegin(); }
+  auto end() noexcept { return value.end(); }
   auto cend() const noexcept { return value.cend(); }
 
   bool operator==(const PrintableVector<Type> &other) const {
@@ -162,17 +163,25 @@ class PrintableStrMap {
     map_fields(source, names, values);
   }
 
-  auto begin() { return items.begin(); }
-  auto end() { return items.end(); }
-  auto cbegin() const { return items.cbegin(); }
-  auto cend() const { return items.cend(); }
+  auto begin() const noexcept { return items.begin(); }
+  auto end() const noexcept { return items.end(); }
+  auto cbegin() const noexcept { return items.cbegin(); }
+  auto cend() const noexcept { return items.cend(); }
 
-  auto keys_begin() const { return keys.begin(); }
-  auto keys_end() const { return keys.end(); }
+  auto &get_keys() noexcept { return keys; }
+  auto keys_begin() noexcept { return keys.begin(); }
+  auto keys_end() noexcept { return keys.end(); }
   auto keys_cbegin() const { return keys.cbegin(); }
   auto keys_cend() const { return keys.cend(); }
 
-  auto at(const string &key) { return items.at(key); }
+  auto at(const string &key) const { return items.at(key); }
+  auto &operator[](const string &key) { return items[key]; }
+  std::optional<opt_str> get(const string &key) const noexcept {
+    if (const auto found = items.find(key); found != end())
+      return found->second;
+    else
+      return std::nullopt;
+  }
 
   void map_fields(const string &source, char names = ';', char values = '=') {
     if (!source.size()) return;
