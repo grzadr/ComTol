@@ -4,7 +4,7 @@ project(pyAGizmo VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_BUILD_TYPE Release)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "/usr/lib/python3.6" CACHE PATH "..." FORCE)
+  set(CMAKE_INSTALL_PREFIX "/usr/lib/python3" CACHE PATH "..." FORCE)
 endif()
 
 if (NOT HEADER_INSTALL_PREFIX)
@@ -43,7 +43,7 @@ target_compile_options(pyAGizmo PRIVATE -march=x86-64 -mtune=native -O3 -g0
                        -fvisibility=hidden -Werror -Wall -pthread)
 target_compile_features(pyAGizmo PRIVATE cxx_std_17)
 
-install(TARGETS pyAGizmo LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
+add_dependencies(pyAGizmo BasicTest)
+
+install(TARGETS pyAGizmo EXPORT pyAGizmo-export LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY include/agizmo DESTINATION ${HEADER_INSTALL_PREFIX}/include)
-
-

@@ -40,8 +40,8 @@ PYBIND11_MODULE(pyAGizmo, m) {
   //      umap_str&>(&str_replace_n_copy<umap_str>), "source"_a, "index"_a);
 
   m.def("str_join_fields",
-        py::overload_cast<const umap_str_opt &, string, string>(
-            &str_join_fields<umap_str_opt>),
+        py::overload_cast<const map_str_opt &, string, string>(
+            &str_join_fields<map_str_opt>),
         "ref"_a, "fields_sep"_a = ";", "values_sep"_a = "=");
 
   //  m.def("str_join_fields",
