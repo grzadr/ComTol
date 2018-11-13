@@ -39,7 +39,10 @@ class FileReader {
 
   ~FileReader() { close(); }
 
-  void close() { input.close(); }
+  void close() {
+    line = "";
+    input.close();
+  }
   void open(string_view file_name) {
     close();
     open_file(file_name, input);
@@ -47,7 +50,7 @@ class FileReader {
 
   string getLine() const { return line; }
   string str() const { return getLine(); }
-  bool good() { return input.good(); }
+  [[nodiscard]] bool good() const noexcept { return input.good(); }
 
   friend std::ostream &operator<<(ostream &stream, const FileReader &reader) {
     return stream << reader.str();
