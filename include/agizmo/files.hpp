@@ -26,21 +26,28 @@ inline void open_file(string_view file_name, ifstream &stream) {
 }
 
 class FileReader {
-private:
+ private:
   ifstream input;
   string file_name, line{};
 
-public:
+ public:
   FileReader() = delete;
 
   FileReader(string_view file_name) : file_name{file_name} {
-    open_file(this->file_name, input);
+    open(this->file_name);
   }
 
-  ~FileReader() { input.close(); }
+  ~FileReader() { close(); }
+
+  void close() { input.close(); }
+  void open(string_view file_name) {
+    close();
+    open_file(file_name, input);
+  }
 
   string getLine() const { return line; }
   string str() const { return getLine(); }
+  bool good() { return input.good(); }
 
   friend std::ostream &operator<<(ostream &stream, const FileReader &reader) {
     return stream << reader.str();
@@ -50,8 +57,7 @@ public:
     if (skip.empty())
       getline(input, line);
     else
-      while (getline(input, line) && line.find_first_of(skip) == 0)
-        continue;
+      while (getline(input, line) && line.find_first_of(skip) == 0) continue;
 
     return input.good();
   }
@@ -59,8 +65,7 @@ public:
   bool readLine(int skip) {
     for (int i = 0; i < skip; ++i) {
       getline(input, line);
-      if (!input)
-        break;
+      if (!input) break;
     }
     return input.good();
   }
@@ -77,8 +82,7 @@ public:
   bool readLineInto(string &external, int skip) {
     for (int i = 0; i < skip; ++i) {
       getline(input, external);
-      if (!input)
-        break;
+      if (!input) break;
     }
     return input.good();
   }
@@ -91,4 +95,4 @@ public:
   }
 };
 
-} // namespace AGizmo::Files
+}  // namespace AGizmo::Files
