@@ -3,8 +3,10 @@ project(pyAGizmo VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_BUILD_TYPE Release)
 
+find_package (Python3 COMPONENTS Interpreter Development)
+
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "/usr/lib/python3/dist-packages" CACHE PATH "..." FORCE)
+  set(CMAKE_INSTALL_PREFIX ${Python3_SITELIB} CACHE PATH "..." FORCE)
 endif()
 
 if (NOT HEADER_INSTALL_PREFIX)

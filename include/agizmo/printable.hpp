@@ -183,6 +183,17 @@ class PrintableStrMap {
       return std::nullopt;
   }
 
+  string get(const string &key, const string &value) const {
+    if (auto result = get(key))
+      return (*result).value_or("");
+    else
+      return value;
+  }
+
+  bool has(const string &key) const {
+    return std::find(keys.begin(), keys.end(), key) != keys.end();
+  }
+
   void map_fields(const string &source, char names = ';', char values = '=') {
     if (!source.size()) return;
 
