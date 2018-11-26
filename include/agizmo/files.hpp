@@ -28,7 +28,8 @@ inline void open_file(string_view file_name, ifstream &stream) {
 class FileReader {
  private:
   ifstream input;
-  string file_name, line{};
+  string file_name;
+  string line{};
 
  public:
   FileReader() = delete;
@@ -65,11 +66,16 @@ class FileReader {
     return input.good();
   }
 
-  bool readLine(int skip) {
-    for (int i = 0; i < skip; ++i) {
+  bool readLine(const int skip) {
+    if (!skip)
       getline(input, line);
-      if (!input) break;
+    else {
+      for (int i = 0; i < skip; ++i) {
+        getline(input, line);
+        if (!input) break;
+      }
     }
+
     return input.good();
   }
 
@@ -95,6 +101,22 @@ class FileReader {
       return line;
     else
       return nullopt;
+  }
+
+  opt_str operator()(const int skip) {
+    if (readLine(skip))
+      return line;
+    else
+      return nullopt;
+  }
+
+  bool setLineToMatch(const string &match) {
+    do {
+      getline(input, line);
+      if (line == match) return true;
+    } while (input.good());
+
+    return false;
   }
 };
 
