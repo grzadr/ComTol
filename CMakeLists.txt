@@ -6,9 +6,12 @@ set(CMAKE_BUILD_TYPE Release)
 find_package (Python3 COMPONENTS Interpreter Development)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX ${Python3_SITELIB} CACHE PATH "..." FORCE)
+    set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "..." FORCE)
 endif()
 
+if (NOT PYTHON_INSTALL_PREFIX)
+    set(PYTHON_INSTALL_PREFIX ${Python3_SITELIB} CACHE PATH "..." FORCE)
+endif()
 if (NOT HEADER_INSTALL_PREFIX)
     set(HEADER_INSTALL_PREFIX "/usr/local" CACHE PATH "..." FORCE)
 endif()
@@ -47,5 +50,5 @@ target_compile_features(pyAGizmo PRIVATE cxx_std_17)
 
 add_dependencies(pyAGizmo BasicTest)
 
-install(TARGETS pyAGizmo EXPORT pyAGizmo-export LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(TARGETS pyAGizmo EXPORT pyAGizmo-export LIBRARY DESTINATION ${PYTHON_INSTALL_PREFIX})
 install(DIRECTORY include/agizmo DESTINATION ${HEADER_INSTALL_PREFIX}/include)
