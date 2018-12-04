@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -11,12 +12,15 @@ namespace AGizmo::Files {
 
 using std::getline;
 using std::ifstream;
+using std::istream;
 using std::ostream;
 using std::string;
 using std::string_view;
 using opt_str = std::optional<string>;
 using std::nullopt;
 using runerror = std::runtime_error;
+using std::make_unique;
+using std::unique_ptr;
 
 // inline void open_file(const string &file_name, ifstream &stream) {
 inline void open_file(string_view file_name, ifstream &stream) {
@@ -27,73 +31,93 @@ inline void open_file(string_view file_name, ifstream &stream) {
 
 class FileReader {
  private:
-  ifstream input;
-  string file_name;
+  std::unique_ptr<std::istream> input{nullptr};
+  string file_name{};
   string line{};
 
  public:
-  FileReader() = delete;
+  FileReader() = default;
 
   FileReader(string_view file_name) : file_name{file_name} {
     open(this->file_name);
   }
 
-  ~FileReader() { close(); }
+  FileReader(istream &stream) { open(stream); }
+
+  ~FileReader() {
+    std::cerr << "~Filereader()\n";
+    close();
+  }
 
   void close() {
     line = "";
-    input.close();
+    input.release();
   }
   void open(string_view file_name) {
     close();
-    open_file(file_name, input);
+
+    ifstream file_input;
+    open_file(file_name, file_input);
+    std::cerr << "FILESTREAM\n";
+    input = std::make_unique<std::ifstream>(std::move(file_input));
+  }
+
+  void open(istream &stream) {
+    std::cerr << "STDIN\n";
+    close();
+    this->input = make_unique<istream>(stream.rdbuf());
   }
 
   string getLine() const { return line; }
   string str() const { return getLine(); }
-  [[nodiscard]] bool good() const noexcept { return input.good(); }
+  [[nodiscard]] bool good() const noexcept { return input->good(); }
 
   friend std::ostream &operator<<(ostream &stream, const FileReader &reader) {
     return stream << reader.str();
   }
 
   bool readLine(const string &skip = {}) {
-    if (skip.empty())
-      getline(input, line);
-    else
-      while (getline(input, line) && line.find_first_of(skip) == 0) continue;
+    if (skip.empty()) {
+      std::cerr << "READLINE\n";
+      std::cerr << "LINE: " << line << "\n";
+      //      std::cerr << static_cast<bool>(this->input) << "\n";
+      std::cerr << "READLINE\n";
+      getline(*input, line);
 
-    return input.good();
+    } else
+      while (getline(*input, line) && line.find_first_of(skip) == 0) continue;
+
+    return good();
   }
 
   bool readLine(const int skip) {
     if (!skip)
-      getline(input, line);
+      getline(*input, line);
     else {
       for (int i = 0; i < skip; ++i) {
-        getline(input, line);
+        getline(*input, line);
         if (!input) break;
       }
     }
 
-    return input.good();
+    return good();
   }
 
   bool readLineInto(string &external, const string &skip = {}) {
     if (skip.empty())
-      getline(input, external);
+      getline(*input, external);
     else
-      while (getline(input, external) && external.find_first_of(skip) == 0)
+      while (getline(*input, external) && external.find_first_of(skip) == 0)
         continue;
-    return input.good();
+    return good();
   }
 
   bool readLineInto(string &external, int skip) {
     for (int i = 0; i < skip; ++i) {
-      getline(input, external);
+      getline(*input, external);
       if (!input) break;
     }
-    return input.good();
+    return good();
   }
 
   opt_str operator()(const string &skip = {}) {
@@ -112,9 +136,9 @@ class FileReader {
 
   bool setLineToMatch(const string &match) {
     do {
-      getline(input, line);
+      getline(*input, line);
       if (line == match) return true;
-    } while (input.good());
+    } while (good());
 
     return false;
   }
