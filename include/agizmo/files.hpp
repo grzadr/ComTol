@@ -36,18 +36,15 @@ class FileReader {
   string line{};
 
  public:
-  FileReader() = default;
+  FileReader() = delete;
 
-  FileReader(string_view file_name) : file_name{file_name} {
+  FileReader(const string &file_name) : file_name{file_name} {
     open(this->file_name);
   }
 
   FileReader(istream &stream) { open(stream); }
 
-  ~FileReader() {
-    std::cerr << "~Filereader()\n";
-    close();
-  }
+  ~FileReader() { close(); }
 
   void close() {
     line = "";
@@ -58,12 +55,10 @@ class FileReader {
 
     ifstream file_input;
     open_file(file_name, file_input);
-    std::cerr << "FILESTREAM\n";
     input = std::make_unique<std::ifstream>(std::move(file_input));
   }
 
   void open(istream &stream) {
-    std::cerr << "STDIN\n";
     close();
     this->input = make_unique<istream>(stream.rdbuf());
   }
@@ -77,14 +72,9 @@ class FileReader {
   }
 
   bool readLine(const string &skip = {}) {
-    if (skip.empty()) {
-      std::cerr << "READLINE\n";
-      std::cerr << "LINE: " << line << "\n";
-      //      std::cerr << static_cast<bool>(this->input) << "\n";
-      std::cerr << "READLINE\n";
+    if (skip.empty())
       getline(*input, line);
-
-    } else
+    else
       while (getline(*input, line) && line.find_first_of(skip) == 0) continue;
 
     return good();

@@ -168,11 +168,11 @@ class PrintableStrMap {
   auto cbegin() const noexcept { return items.cbegin(); }
   auto cend() const noexcept { return items.cend(); }
 
-  auto &get_keys() noexcept { return keys; }
+  vector<string> &get_keys() noexcept { return this->keys; }
   auto keys_begin() noexcept { return keys.begin(); }
   auto keys_end() noexcept { return keys.end(); }
-  auto keys_cbegin() const { return keys.cbegin(); }
-  auto keys_cend() const { return keys.cend(); }
+  auto keys_cbegin() const noexcept { return keys.cbegin(); }
+  auto keys_cend() const noexcept { return keys.cend(); }
 
   auto at(const string &key) const { return items.at(key); }
   auto &operator[](const string &key) { return items[key]; }
@@ -183,9 +183,13 @@ class PrintableStrMap {
       return std::nullopt;
   }
 
-  string get(const string &key, const string &value) const {
+  auto size() const { return keys.size(); }
+  auto isEmpty() const { return keys.empty(); }
+
+  string get(const string &key, const string &value,
+             const string &empty = "") const {
     if (auto result = get(key))
-      return (*result).value_or("");
+      return (*result).value_or(empty);
     else
       return value;
   }
@@ -229,6 +233,25 @@ class PrintableStrMap {
       for (const auto &[key, value] : items) {
         output << names << key;
         if (value) output << values << *value;
+      }
+    }
+
+    return output.str().substr(1);
+  }
+
+  template <class It>
+  string join_fields(It begin, It end, char names = ';', char values = '=',
+                     std::function<string(const string &)> modify =
+                         [](const string &ele) { return ele; }) const {
+    if (items.empty()) return "";
+
+    sstream output;
+
+    for (auto key = begin; key != end; ++key) {
+      if (const auto item = this->get(*key)) {
+        output << names << *key;
+        if (const auto &value = *item)
+          if (value) output << values << modify(*value);
       }
     }
 
