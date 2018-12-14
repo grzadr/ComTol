@@ -16,26 +16,23 @@ using std::vector;
 class Flag {
  private:
   string name{};
-  int position{0};
   optional<string> value{};
 
  public:
   Flag() = delete;
-  Flag(const string& name, const int position) : position{position} {
+  Flag(const string& name) {
     if (name.empty()) throw runtime_error("Name of the flag cannot be empty!");
     this->name = name.substr(name.find_first_not_of('-'));
   }
-  Flag(const string& name, const int position, const string& value)
-      : Flag(name, position) {
+  Flag(const string& name, const string& value) : Flag(name) {
     this->value = value;
   }
-  Flag(const int position, const string& value)
-      : position{position}, value{value} {}
 
   bool hasValue() const { return value.has_value(); }
   bool isEmpty() const { return !hasValue(); }
+  bool isPositional() const { return name.front() == '_'; }
   auto getName() const { return name; }
-  auto getPosition() const { return position; }
+  auto getPosition() const { return std::stoi(name.substr(1)); }
   auto getValue() const { return value; }
   auto getValue(const string& backup) const { return value.value_or(backup); }
 };
@@ -48,7 +45,7 @@ class Arguments {
   Arguments() = delete;
   Arguments(int argc, char* argv[]) {
     string name{};
-
+    int position = 0;
     for (int i = 1; i < argc; ++i) {
       string temp = argv[i];
 
