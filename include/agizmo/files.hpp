@@ -34,6 +34,7 @@ class FileReader {
   std::unique_ptr<std::istream> input{nullptr};
   string file_name{};
   string line{};
+  int line_num{0};
 
  public:
   FileReader() = delete;
@@ -64,6 +65,7 @@ class FileReader {
   }
 
   string getLine() const { return line; }
+  int getLineNum() const { return line_num; }
   string str() const { return getLine(); }
   [[nodiscard]] bool good() const noexcept { return input->good(); }
 
@@ -72,22 +74,29 @@ class FileReader {
   }
 
   bool readLine(const string &skip = {}) {
-    if (skip.empty())
+    if (skip.empty()) {
       getline(*input, line);
-    else
-      while (getline(*input, line) && line.find_first_of(skip) == 0) continue;
+      ++line_num;
+    } else {
+      while (getline(*input, line) && line.find_first_of(skip) == 0) {
+        ++line_num;
+        continue;
+      }
+      ++line_num;
+    }
 
     return good();
   }
 
   bool readLine(const int skip) {
     if (!skip)
-      getline(*input, line);
+      readLine();
     else {
       for (int i = 0; i < skip; ++i) {
         getline(*input, line);
         if (!input) break;
       }
+      line_num += skip;
     }
 
     return good();
