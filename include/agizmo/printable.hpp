@@ -159,8 +159,9 @@ class PrintableStrMap {
 
  public:
   PrintableStrMap() = default;
-  PrintableStrMap(const string &source, char names = ';', char values = '=') {
-    map_fields(source, names, values);
+  PrintableStrMap(const string &source, char names = ';', char values = '=',
+                  char quotes = 0) {
+    map_fields(source, names, values, quotes);
   }
 
   auto begin() const noexcept { return items.begin(); }
@@ -198,10 +199,14 @@ class PrintableStrMap {
     return std::find(keys.begin(), keys.end(), key) != keys.end();
   }
 
-  void map_fields(const string &source, char names = ';', char values = '=') {
+  void map_fields(const string &source, char names = ';', char values = '=',
+                  char quotes = 0) {
     if (!source.size()) return;
 
-    for (auto ele : StringDecompose::str_split(source, names, true)) {
+    for (auto ele :
+         (quotes == 0
+              ? StringDecompose::str_split(source, names, true)
+              : StringDecompose::str_split_quoted(source, names, quotes))) {
       const auto mark(ele.find(values));
 
       string key{ele.substr(0, mark)};

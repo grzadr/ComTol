@@ -392,6 +392,45 @@ inline vec_str str_split(const string &source, char sep, bool empty) {
   return result;
 }
 
+inline vec_str str_split_quoted(const string &source, char sep, char quote) {
+  if (!source.size()) return vec_str{};
+
+  vec_str output{};
+  string temp{};
+  for (const auto &ele : str_split(source, sep, true)) {
+    if (ele.empty()) {
+      if (temp.empty())
+        output.emplace_back(std::move(ele));
+      else
+        temp + sep + sep;
+    } else {
+      if (temp.empty()) {
+        if (ele.front() == quote)
+          temp += ele;
+        else if (ele.back() == quote)
+          throw runtime_error{"'" + ele +
+                              "' includes unopened quatiotation in '" + "' "};
+        else
+          output.emplace_back(std::move(ele));
+      } else {
+        if (ele.front() == quote)
+          throw runtime_error{"'" + temp + sep + ele +
+                              "' includes unclosed quatiotation in '" + "' "};
+        else {
+          temp += ele;
+          if (temp.back() == quote) output.emplace_back(std::move(temp));
+        }
+      }
+    }
+  }
+
+  if (!temp.empty())
+    throw runtime_error{"'" + temp + "' includes unclosed quatiotation in '" +
+                        "' "};
+
+  return output;
+}
+
 inline vec_str str_split(const string &source, string sep = "\t",
                          bool empty = true) {
   if (sep.empty() || source.empty()) return vec_str{source};
@@ -489,6 +528,11 @@ inline auto count_all(const string &source, char query, size_t pos = 0) {
 inline auto str_starts_with(const string &source, const string &query) {
   return query.size() <= source.size() &&
          query == source.substr(0, query.size());
+}
+
+inline auto str_ends_with(const string &source, const string &query) {
+  return query.size() <= source.size() &&
+         query == source.substr(source.size() - query.size());
 }
 
 }  // namespace StringSearch
