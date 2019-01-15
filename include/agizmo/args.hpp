@@ -218,7 +218,11 @@ class Arguments {
     }
 
     std::cerr << "Processed arguments\n";
-    for (const auto &arg : args) std::cerr << arg << "\n";
+    for (const auto &arg : args) {
+      std::cerr << arg << "\n";
+      if (arg.isPositional() && arg.isEmpty())
+        throw runtime_error{"Positional argument not set -> " + arg.str()};
+    }
     //      string temp = argv[i];
 
     //      if (name.empty()) {

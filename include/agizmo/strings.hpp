@@ -31,6 +31,32 @@ using chours = std::chrono::hours;
 using cminutes = std::chrono::minutes;
 using cseconds = std::chrono::seconds;
 
+namespace StringSearch {
+
+// Function counts all occurences of character in string.
+// Check starts from pos position. If pos is string::npos
+// it checks from the beginning of the string.
+// If pos is bigger than string size it returns 0.
+inline auto count_all(const string &source, char query, size_t pos = 0) {
+  auto first =
+      next(begin(source), (pos == string::npos) ? 0 : static_cast<long>(pos));
+  auto last = end(source);
+  if (first > last) return 0l;
+  return count(first, last, query);
+}
+
+inline auto str_starts_with(const string &source, const string &query) {
+  return query.size() <= source.size() &&
+         query == source.substr(0, query.size());
+}
+
+inline auto str_ends_with(const string &source, const string &query) {
+  return query.size() <= source.size() &&
+         query == source.substr(source.size() - query.size());
+}
+
+}  // namespace StringSearch
+
 namespace StringFormat {
 
 // Function checks if given string contains any characters and only digits.
@@ -398,35 +424,37 @@ inline vec_str str_split_quoted(const string &source, char sep, char quote) {
   vec_str output{};
   string temp{};
   for (const auto &ele : str_split(source, sep, true)) {
+    // Debug
+    //    std::cerr << "temp.empty(): " << temp.empty() << "\n"
+    //              << "count: " << StringSearch::count_all(ele, quote) << "\n"
+    //              << ele << "\n";
     if (ele.empty()) {
       if (temp.empty())
-        output.emplace_back(std::move(ele));
+        output.emplace_back(ele);
       else
         temp + sep + sep;
     } else {
       if (temp.empty()) {
-        if (ele.front() == quote)
-          temp += ele;
-        else if (ele.back() == quote)
-          throw runtime_error{"'" + ele +
-                              "' includes unopened quatiotation in '" + "' "};
+        if (StringSearch::count_all(ele, quote) % 2 == 0)
+          output.emplace_back(ele);
         else
-          output.emplace_back(std::move(ele));
+          temp = ele;
       } else {
-        if (ele.front() == quote)
-          throw runtime_error{"'" + temp + sep + ele +
-                              "' includes unclosed quatiotation in '" + "' "};
+        if (auto count = StringSearch::count_all(ele, quote); !count)
+          temp += sep + ele;
+        else if (count % 2 == 0)
+          throw runtime_error{
+              source + "\n\n includes unclosed quatiotation in \n\n" + ele};
         else {
-          temp += ele;
-          if (temp.back() == quote) output.emplace_back(std::move(temp));
+          output.emplace_back(temp + ele);
+          temp = "";
         }
       }
     }
   }
 
   if (!temp.empty())
-    throw runtime_error{"'" + temp + "' includes unclosed quatiotation in '" +
-                        "' "};
+    throw runtime_error{"'" + temp + "' is not empty '" + "' "};
 
   return output;
 }
@@ -510,32 +538,6 @@ inline str_pair str_split_in_half(const string &source, char mark) noexcept {
 }
 
 }  // namespace StringDecompose
-
-namespace StringSearch {
-
-// Function counts all occurences of character in string.
-// Check starts from pos position. If pos is string::npos
-// it checks from the beginning of the string.
-// If pos is bigger than string size it returns 0.
-inline auto count_all(const string &source, char query, size_t pos = 0) {
-  auto first =
-      next(begin(source), (pos == string::npos) ? 0 : static_cast<long>(pos));
-  auto last = end(source);
-  if (first > last) return 0l;
-  return count(first, last, query);
-}
-
-inline auto str_starts_with(const string &source, const string &query) {
-  return query.size() <= source.size() &&
-         query == source.substr(0, query.size());
-}
-
-inline auto str_ends_with(const string &source, const string &query) {
-  return query.size() <= source.size() &&
-         query == source.substr(source.size() - query.size());
-}
-
-}  // namespace StringSearch
 
 //// Converts string containing fields separated with char fields and
 //// their values seperated by char values into map. If some field has no value,
