@@ -163,6 +163,9 @@ class PrintableStrMap {
                   char quotes = 0) {
     map_fields(source, names, values, quotes);
   }
+  PrintableStrMap(const vec_str &keys, const vec_str &values) {
+    map_fields(keys, values);
+  }
 
   auto begin() const noexcept { return items.begin(); }
   auto end() const noexcept { return items.end(); }
@@ -218,8 +221,20 @@ class PrintableStrMap {
         else
           throw runtime_error("Key " + key + "already in map -> None");
       } else {
-        keys.emplace_back((*it).first);
+        this->keys.emplace_back((*it).first);
       }
+    }
+  }
+
+  void map_fields(const vec_str &keys, const vec_str &values) {
+    if (keys.size() != values.size())
+      throw runtime_error{"keys and values vectors have different sizes!"};
+
+    for (auto k = keys.begin(), v = values.begin(); k < keys.end(); ++k, ++v) {
+      if (const auto [it, inserted] = items.try_emplace(*k, *v); !inserted)
+        throw runtime_error("Key " + *k + "already in map -> " + *(*it).second);
+      else
+        this->keys.emplace_back((*it).first);
     }
   }
 
