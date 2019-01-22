@@ -537,6 +537,16 @@ inline str_pair str_split_in_half(const string &source, char mark) noexcept {
     return {source.substr(0, pos), source.substr(pos + 1)};
 }
 
+inline string str_extract_before(const string &source,
+                                 const char &terminator) noexcept {
+  if (source.empty()) return "";
+
+  if (auto pos = source.find_first_of(terminator); pos != string::npos)
+    return source.substr(0, pos);
+  else
+    return source;
+}
+
 }  // namespace StringDecompose
 
 //// Converts string containing fields separated with char fields and

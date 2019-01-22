@@ -227,8 +227,11 @@ class PrintableStrMap {
   }
 
   void map_fields(const vec_str &keys, const vec_str &values) {
-    if (keys.size() != values.size())
+    if (keys.size() != values.size()) {
+      std::cerr << StringCompose::str_join(keys, ";") << "\n";
+      std::cerr << StringCompose::str_join(values, ";") << "\n";
       throw runtime_error{"keys and values vectors have different sizes!"};
+    }
 
     for (auto k = keys.begin(), v = values.begin(); k < keys.end(); ++k, ++v) {
       if (const auto [it, inserted] = items.try_emplace(*k, *v); !inserted)
