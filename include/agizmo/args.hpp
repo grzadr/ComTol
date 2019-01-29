@@ -21,18 +21,16 @@ using std::to_string;
 using std::vector;
 using sstream = std::stringstream;
 
-enum class ValueType { Bool = 1, Integer = 2, String = 3, Double = 4 };
+enum class ValueType { Bool = 1, Single = 2, Multiple = 3 };
 
 inline string str_value_type(const ValueType &value_type) {
   switch (value_type) {
   case ValueType::Bool:
     return "Bool";
-  case ValueType::Integer:
-    return "Integer";
-  case ValueType::String:
-    return "String";
-  case ValueType::Double:
-    return "Double";
+  case ValueType::Single:
+    return "Single";
+  case ValueType::Multiple:
+    return "Multiple";
   default:
     throw runtime_error{"Unknown"};
   }
@@ -46,13 +44,15 @@ private:
   ValueType value_type;
   char alt_name;
   optional<string> value;
+  bool obligatory;
 
 public:
   Flag() = delete;
   Flag(int position, const string &name, const string &help,
-       ValueType value_type, char alt_name, optional<string> default_val)
-      : position{position}, name{name}, help{help},
-        value_type{value_type}, alt_name{alt_name}, value{default_val} {}
+       ValueType value_type, char alt_name, optional<string> default_val,
+       bool obligatory)
+      : position{position}, name{name}, help{help}, value_type{value_type},
+        alt_name{alt_name}, value{default_val}, obligatory{obligatory} {}
 
   friend bool operator<(const Flag &lhs, const Flag &rhs) {
     if (lhs.position == 0)
@@ -64,10 +64,11 @@ public:
   }
 
   bool hasValue() const { return value.has_value(); }
-  bool isSet() const { return value.has_value(); }
+  bool isSet() const { return hasValue(); }
   bool isEmpty() const { return !hasValue(); }
   bool isPositional() const { return position > 0; }
   bool isLogical() const { return value_type == ValueType::Bool; }
+  bool isObligatory() const { return obligatory; }
   auto getName() const noexcept { return name; }
   auto getAltName() const noexcept { return alt_name; }
   auto getPosition() const { return position; }
@@ -104,37 +105,37 @@ public:
 
 class Arguments {
 private:
-  //  using alt_map = std::unordered_map<char, string>;
-  //  using args_map = std::unordered_map<string, Flag>;
-
   vector<Flag> args{};
+  int last_position = 0;
 
   void addArgument(int position, const string &name, const string &help,
                    const ValueType &value_type, char alt_name,
-                   const optional<string> &def_value) {
+                   const optional<string> &def_value, bool obligatory) {
     if (name.empty())
       throw runtime_error{"Argument name cannot be empty!"};
-    args.emplace_back(position, name, help, value_type, alt_name, def_value);
+    args.emplace_back(position, name, help, value_type, alt_name, def_value,
+                      obligatory);
     std::stable_sort(args.begin(), args.end());
   }
 
 public:
   Arguments() = default;
 
-  void addArgument(int position, const string &name, const string &help,
-                   const ValueType &value_type) {
-    if (position < 1)
-      throw runtime_error{"Argument position must be greater than 0"};
-    if (value_type == ValueType::Bool)
-      throw runtime_error{"Can't set positional argument '" + name +
-                          "' with type Bool"};
-    addArgument(position, name, help, value_type, 0, nullopt);
+  void addArgument(const string &name, const string &help, bool obligatory) {
+    addArgument(++last_position, name, help, ValueType::Single, 0, nullopt,
+                obligatory);
   }
 
   void addArgument(const string &name, const string &help,
-                   const ValueType &value_type, char alt_name = 0,
-                   optional<string> def_value = nullopt) {
-    addArgument(0, name, help, value_type, alt_name, def_value);
+                   const ValueType &value_type, char alt_name,
+                   optional<string> def_value) {
+    addArgument(0, name, help, value_type, alt_name, def_value, false);
+  }
+
+  void addArgument(const string &name, const string &help,
+                   const ValueType &value_type, char alt_name,
+                   bool obligatory = false) {
+    addArgument(0, name, help, value_type, alt_name, nullopt, obligatory);
   }
 
   auto begin() const { return this->args.begin(); }
@@ -219,8 +220,8 @@ public:
     std::cerr << "Processed arguments\n";
     for (const auto &arg : args) {
       std::cerr << arg << "\n";
-      if (arg.isPositional() && arg.isEmpty())
-        throw runtime_error{"Positional argument not set -> " + arg.str()};
+      if (arg.isObligatory() && arg.isEmpty())
+        throw runtime_error{"Obligatory argument not set -> " + arg.str()};
     }
   }
 };
