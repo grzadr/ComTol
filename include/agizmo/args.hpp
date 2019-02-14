@@ -69,8 +69,10 @@ public:
   bool isEmpty() const { return !hasValue(); }
   bool isPositional() const { return position > 0; }
   bool isSwitch() const { return value_type == ValueType::Switch; }
-  bool isMultiple() const {}
+  bool isMultiple() const { return value_type == ValueType::Multiple; }
+  bool isSingle() const { return value_type == ValueType::Single; }
   bool isObligatory() const { return obligatory; }
+  bool isOptional() const { return !obligatory; }
   void makeObligatory() { obligatory = true; }
   void makeOptional() { obligatory = false; }
   auto getName() const noexcept { return name; }
@@ -87,7 +89,7 @@ public:
       throw runerror{"Argument " + name + " is not set!"};
   }
   auto getValue(const string &backup) const { return value.value_or(backup); }
-  auto setValue(const string &value) { this->value = value; }
+  auto setValue(const string &value = "") { this->value = value; }
 
   string str() const {
     sstream output;
@@ -118,6 +120,7 @@ class Arguments {
 private:
   vector<Flag> args{};
   int last_position = 0;
+  bool allow_overwrite{true};
 
   void addArgument(int position, const string &name, const string &help,
                    const ValueType &value_type, char alt_name,
@@ -130,6 +133,7 @@ private:
 
 public:
   Arguments() = default;
+  Arguments(bool allow_overwrite) : allow_overwrite{allow_overwrite} {}
 
   void addPositional(const string &name, const string &help,
                      bool obligatory = false) {
@@ -203,12 +207,19 @@ public:
     return nullopt;
   }
 
+  bool contains(const string &name) const {
+    return std::find_if(begin(), end(), [&name](auto &a) {
+             return a.getName() == name;
+           }) != end();
+  }
+
   bool isSet(const string &name) const { return getArg(name).isSet(); }
 
   string getValue(const string &name) { return getArg(name).getValue(); }
   string getValue(const string &name, const string &default_value) {
     return getArg(name).getValue(default_value);
   }
+
   string getValue(int position) { return getArg(position).getValue(); }
   string getValue(int position, const string &default_value) {
     return getArg(position).getValue(default_value);
@@ -217,18 +228,26 @@ public:
   void parse(int argc, char *argv[]) {
     std::stable_sort(args.begin(), args.end());
 
-    int last_poz = 0;
+    int current_position = 0;
     for (int i = 1; i < argc; ++i) {
       string temp = argv[i];
       std::cerr << temp << "\n";
       if (temp == "--") {
         for (int j = i + 1; j < argc; ++j)
-          this->getArg(++last_poz).setValue(argv[j]);
+          this->getArg(++current_position).setValue(argv[j]);
       } else if (temp == "-")
         throw runtime_error{"Missing option after '-' in position " +
                             to_string(i)};
       else if (StringSearch::str_starts_with(temp, "--")) {
-        auto &arg_ref = getArg(temp.substr(2));
+        if (auto arg_name = temp.substr(2);
+            arg_name.find('=') != string::npos) {
+          auto [name, value] =
+              StringDecompose::str_split_in_half(arg_name, '=');
+
+          if (contains(name))
+        }
+        if ()
+          auto &arg_ref = getArg();
         if (arg_ref.isSwitch())
           arg_ref.setValue("On");
         else if (++i == argc)
