@@ -7,6 +7,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <agizmo/strings.hpp>
@@ -20,6 +21,8 @@ using std::string;
 using std::to_string;
 using std::vector;
 using sstream = std::stringstream;
+
+using args_map = std::unordered_map<char, string>;
 
 enum class ValueType { Switch = 1, Single = 2, Multiple = 3 };
 
@@ -89,7 +92,18 @@ public:
       throw runerror{"Argument " + name + " is not set!"};
   }
   auto getValue(const string &backup) const { return value.value_or(backup); }
-  auto setValue(const string &value = "") { this->value = value; }
+  bool setValue(const string &value = "") {
+    if (StringSearch::str_starts_with(value, "-"))
+      throw runerror{"Missing value for " + name + "!"};
+    else if (value_type == ValueType::Multiple) {
+      this->value = this->value.value_or("") + string(1, 34) + value;
+      return false;
+    } else {
+      bool result = this->value.has_value();
+      this->value = value;
+      return result;
+    }
+  }
 
   string str() const {
     sstream output;
@@ -121,14 +135,54 @@ private:
   vector<Flag> args{};
   int last_position = 0;
   bool allow_overwrite{true};
+  args_map alt_names_map;
 
   void addArgument(int position, const string &name, const string &help,
                    const ValueType &value_type, char alt_name,
                    const optional<string> &def_value, bool obligatory) {
     if (name.empty())
       throw runtime_error{"Argument name cannot be empty!"};
+    if (contains(name))
+      throw runerror("Argument '" + name + "' already added!");
+
+    if (auto [it, inserted] = alt_names_map.try_emplace(alt_name, name);
+        !inserted)
+      throw runerror("Argument '" + string(1, alt_name) + "' already added!");
+
     args.emplace_back(position, name, help, value_type, alt_name, def_value,
                       obligatory);
+  }
+
+  auto &getArg(const string &name) {
+    for (auto &ele : args) {
+      if (ele.getName() == name)
+        return ele;
+    }
+
+    throw runtime_error("Argument not found:" + name);
+  }
+
+  auto getArg(const string &name) const {
+    for (auto &ele : args) {
+      if (ele.getName() == name)
+        return ele;
+    }
+
+    throw runtime_error("Argument not found:" + name);
+  }
+
+  auto &getArg(const int position) {
+    for (auto &ele : args) {
+      if (position == ele.getPosition())
+        return ele;
+    }
+
+    throw runtime_error("Positional argument not found:" + to_string(position));
+  }
+
+  string getValue(int position) { return getArg(position).getValue(); }
+  string getValue(int position, const string &default_value) {
+    return getArg(position).getValue(default_value);
   }
 
 public:
@@ -151,8 +205,8 @@ public:
     addArgument(0, name, help, ValueType::Single, 0, def_value, false);
   }
 
-  void addObligatoryArgument(const string &name, const string &help,
-                             char alt_name = 0) {
+  void addObligatory(const string &name, const string &help,
+                     char alt_name = 0) {
     addArgument(0, name, help, ValueType::Single, alt_name, nullopt, true);
   }
 
@@ -168,43 +222,14 @@ public:
   auto size() const { args.size(); }
   auto empty() const { args.empty(); }
 
-  auto &getArg(const string &name) {
-    for (auto &ele : args) {
-      if (ele.getName() == name)
-        return ele;
-    }
-
-    throw runtime_error("Argument not found:" + name);
-  }
-
-  auto getArg(const string &name) const {
-    for (auto &ele : args) {
-      if (ele.getName() == name)
-        return ele;
-    }
-
-    throw runtime_error("Argument not found:" + name);
-  }
-
-  auto &getArg(const int position) {
-    for (auto &ele : args) {
-      if (auto arg_pos = ele.getPosition(); arg_pos == position)
-        return ele;
-    }
-
-    throw runtime_error("Positional argument not found:" + to_string(position));
-  }
-
   void makeObligatory(const string &name) { getArg(name).makeObligatory(); }
   void allowMultipleValues(const string &name) { getArg(name).makeMultiple(); }
 
   optional<string> getArgName(const char alt_name) {
-    for (auto &ele : args) {
-      if (auto arg_alt_name = ele.getAltName(); arg_alt_name == alt_name)
-        return ele.getName();
-    }
-
-    return nullopt;
+    if (auto found = alt_names_map.find(alt_name); found != alt_names_map.end())
+      return found->second;
+    else
+      return nullopt;
   }
 
   bool contains(const string &name) const {
@@ -215,14 +240,29 @@ public:
 
   bool isSet(const string &name) const { return getArg(name).isSet(); }
 
-  string getValue(const string &name) { return getArg(name).getValue(); }
-  string getValue(const string &name, const string &default_value) {
+  string getValue(const string &name) const { return getArg(name).getValue(); }
+  string getValue(const string &name, const string &default_value) const {
     return getArg(name).getValue(default_value);
   }
 
-  string getValue(int position) { return getArg(position).getValue(); }
-  string getValue(int position, const string &default_value) {
-    return getArg(position).getValue(default_value);
+  string operator()(const string &name) const { return getValue(name); }
+  string operator()(const string &name, const string &default_value) const {
+    return getValue(name, default_value);
+  }
+
+  bool setValue(const string &name, const string &value = "") {
+    if (auto overwrite = getArg(name).setValue(value);
+        overwrite && !allow_overwrite)
+      throw runerror("Argument " + name + "overwritten!");
+    else
+      return false;
+  }
+  bool setValue(int position, const string &value = "") {
+    if (auto overwrite = getArg(position).setValue(value);
+        overwrite && !allow_overwrite)
+      throw runerror("Argument " + name + "overwritten!");
+    else
+      return false;
   }
 
   void parse(int argc, char *argv[]) {
@@ -232,28 +272,34 @@ public:
     for (int i = 1; i < argc; ++i) {
       string temp = argv[i];
       std::cerr << temp << "\n";
+      // If single --  is encountered rest are
+      // interpreted as positional arguments
       if (temp == "--") {
-        for (int j = i + 1; j < argc; ++j)
-          this->getArg(++current_position).setValue(argv[j]);
-      } else if (temp == "-")
-        throw runtime_error{"Missing option after '-' in position " +
-                            to_string(i)};
+        for (; i < argc; ++i)
+          setValue(++current_position, argv[i]);
+      }
+      //      TODO Should parser allow lonely '-' sign?
+      //      else if (temp == "-")
+      //        throw runtime_error{"Missing option after '-' in position " +
+      //                            to_string(i)};
+      // Argument starts with "--"
       else if (StringSearch::str_starts_with(temp, "--")) {
         if (auto arg_name = temp.substr(2);
-            arg_name.find('=') != string::npos) {
+            !StringSearch::contains(arg_name, '=')) {
+
+          if (auto arg_ref = getArg(arg_name); arg_ref.isSwitch())
+            arg_ref.setValue();
+          else if (++i == argc)
+            throw runtime_error{"Missing value for argument " + temp};
+          else
+            arg_ref.setValue(argv[i]);
+
+        } else {
           auto [name, value] =
               StringDecompose::str_split_in_half(arg_name, '=');
-
-          if (contains(name))
+          setValue(name, value);
         }
-        if ()
-          auto &arg_ref = getArg();
-        if (arg_ref.isSwitch())
-          arg_ref.setValue("On");
-        else if (++i == argc)
-          throw runtime_error{"Missing value for argument " + temp};
-        else
-          arg_ref.setValue(argv[i]);
+
       } else if (temp.front() == '-') {
         if (temp = temp.substr(1); temp.size() == 1) {
           if (const auto &arg_name = getArgName(temp.front())) {
