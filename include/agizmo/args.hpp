@@ -49,7 +49,7 @@ private:
   bool obligatory;
 
 public:
-  BaseFlag() = default;
+  BaseFlag() = delete;
   BaseFlag(const string &name, const string &help, char name_alt,
            const opt_str &default_value, bool obligatory)
       : name{name}, help{help}, name_alt{name_alt}, value{default_value},
@@ -94,7 +94,7 @@ public:
     if (name_alt)
       output << "/" << name_alt;
 
-    output << getValue("__NULL__");
+    output << " " << getValue("__NULL__");
 
     return output.str();
   }
@@ -119,7 +119,6 @@ public:
   }
 
   string getName() const { return flag.getName(); }
-  char getNameAlt() const { return flag.getNameAlt(); }
 
   string str() const {
     sstream output;
@@ -141,7 +140,7 @@ public:
   string getName() const { return flag.getName(); }
   char getNameAlt() const { return flag.getNameAlt(); }
 
-  string str() const { return flag.str(); }
+  string str() const { return "M: " + flag.str(); }
 };
 
 class SwitchFlag {
@@ -156,11 +155,11 @@ public:
   string getName() const { return flag.getName(); }
   char getNameAlt() const { return flag.getNameAlt(); }
 
-  string str() const { return flag.str(); }
+  string str() const { return "S: " + flag.str(); }
 };
 
-// using Flags = std::variant<BaseFlag, PositionalFlag, MultiFlag, SwitchFlag>;
-using Flags = std::variant<PositionalFlag>;
+using Flags = std::variant<BaseFlag, PositionalFlag, MultiFlag, SwitchFlag>;
+// using Flags = std::variant<PositionalFlag>;
 using FlagsMap = std::unordered_map<string, Flags>;
 using FlagsNamesAlt = std::unordered_map<char, string>;
 
@@ -177,46 +176,7 @@ private:
   FlagsNamesAlt alt_names_map;
   vec_str positional;
 
-  //  void record(const Flags &item) {}
-
-  void record(int position, const string &name, const string &help,
-              bool obligatory) {
-
-    if (const auto &[it, inserted] =
-            args.try_emplace(name, std::in_place_type<PositionalFlag>, position,
-                             name, help, obligatory);
-        !inserted)
-      throw runerror{"Argument " + name + " alredy exists!"};
-    else {
-      std::visit(
-          [this, &name](const auto &arg) {
-            if (const auto name_alt = arg.getNameAlt(); name_alt)
-              if (const auto &[it, inserted] =
-                      this->alt_names_map.try_emplace(name_alt, name);
-                  !inserted)
-                throw runerror{"Argument " + name + " alredy exists!"};
-          },
-          it->second);
-    }
-    //    std::cerr << it->first << "\n";
-    //    if (const auto &[it, inserted] =
-    //            args.try_emplace(name, std::in_place_type<PositionalFlag>,
-    //            position,
-    //                             name, help, obligatory);
-    //        !inserted)
-    //
-    //    else {
-    //      std::visit(
-    //          [this, &name](const auto &arg) {
-    //            if (const auto name_alt = arg.getNameAlt(); name_alt)
-    //              if (const auto &[it, inserted] =
-    //                      this->alt_names_map.try_emplace(name_alt, name);
-    //                  !inserted)
-    //                throw runerror{"Argument " + name + " alredy exists!"};
-    //          },
-    //          it->second);
-    //    }
-  }
+  void insertPositional(const string &name) { positional.emplace_back(name); }
 
   template <class T, class... Args>
   void record(const string &name, Args &&... arguments) {
@@ -225,15 +185,17 @@ private:
         !inserted)
       throw runerror{"Argument " + name + " alredy exists!"};
     else {
-      std::visit(
-          [this, &name](const auto &arg) {
-            if (const auto name_alt = arg.getNameAlt(); name_alt)
-              if (const auto &[it, inserted] =
-                      this->alt_names_map.try_emplace(name_alt, name);
-                  !inserted)
-                throw runerror{"Argument " + name + " alredy exists!"};
-          },
-          it->second);
+      if (std::holds_alternative<PositionalFlag>(it->second))
+        insertPositional(name);
+      else {
+        //        if (const auto name_alt = it->second.getNameAlt(); name_alt)
+        //          if (const auto &[it, inserted] =
+        //                  this->alt_names_map.try_emplace(name_alt, name);
+        //              !inserted)
+        //            throw runerror{"Flag '" + string(1, name_alt) +
+        //                           "' alredy bounded to argument " +
+        //                           it->second};
+      }
     }
   }
 
@@ -242,54 +204,37 @@ public:
 
   void addPositional(const string &name, const string &help,
                      bool obligatory = false) {
-    //    if (const auto &[it, inserted] =
-    //            args.try_emplace(name, static_cast<int>(positional.size() +
-    //            1),
-    //                             name, help, obligatory);
-    //        !inserted)
-    //      throw runerror{"Argument " + name + " alredy exists!"};
-    //    else
-    //      record(it->second);
-
     record<PositionalFlag>(name, static_cast<int>(positional.size() + 1), name,
                            help, obligatory);
   }
 
-  //  void addArgument(const string &name, const string &help, char alt_name,
-  //                   optional<string> def_value = nullopt) {
-  //    //    if (const auto &[it, inserted] =
-  //    //            args.try_emplace(name, name, help, alt_name, def_value,
-  //    //            false);
-  //    //        !inserted)
-  //    //      throw runerror{"Argument " + name + " alredy exists!"};
-  //    //    else
-  //    //      record(it->second);
-  //    record<BaseFlag>(name, name, help, alt_name, def_value, false);
-  //  }
+  void addArgument(const string &name, const string &help, char alt_name,
+                   optional<string> def_value = nullopt) {
+    record<BaseFlag>(name, name, help, alt_name, def_value, false);
+  }
 
-  //  void addArgument(const string &name, const string &help,
-  //                   optional<string> def_value = nullopt) {
-  //    record<BaseFlag>(name, name, help, 0, def_value);
-  //  }
+  void addArgument(const string &name, const string &help,
+                   optional<string> def_value = nullopt) {
+    record<BaseFlag>(name, name, help, 0, def_value, false);
+  }
 
-  //  void addObligatory(const string &name, const string &help,
-  //                     char alt_name = 0) {
-  //    record<BaseFlag>(name, name, help, alt_name, nullopt, true);
-  //  }
+  void addObligatory(const string &name, const string &help,
+                     char alt_name = 0) {
+    record<BaseFlag>(name, name, help, alt_name, nullopt, true);
+  }
 
-  //  void addSwitch(const string &name, const string &help, char alt_name = 0)
-  //  {
-  //    record<SwitchFlag>(name, name, help, alt_name);
-  //  }
+  void addSwitch(const string &name, const string &help, char alt_name = 0) {
+    record<SwitchFlag>(name, name, help, alt_name);
+  }
 
-  //  void addMulti(const string &name, const string &help, char alt_name = 0) {
-  //    record<MultiFlag>(name, name, help, alt_name, false);
-  //  }
+  void addMulti(const string &name, const string &help, char alt_name = 0) {
+    record<MultiFlag>(name, name, help, alt_name, false);
+  }
 
-  //  void addMultiObligatory(const string &name, const string &help,
-  //                          char alt_name = 0) {
-  //    record<MultiFlag>(name, name, help, alt_name, true);
-  //  }
+  void addMultiObligatory(const string &name, const string &help,
+                          char alt_name = 0) {
+    record<MultiFlag>(name, name, help, alt_name, true);
+  }
 
   string str() const {
     sstream output;
