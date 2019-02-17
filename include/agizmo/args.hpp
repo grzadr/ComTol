@@ -2,12 +2,12 @@
 
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <optional>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -108,7 +108,7 @@ private:
   int position;
 
 public:
-  PositionalFlag() = default;
+  PositionalFlag() = delete;
   PositionalFlag(int position, const string &name, const string &help,
                  bool obligatory)
       : flag{name, help, 0, nullopt, obligatory} {
@@ -159,9 +159,10 @@ public:
   string str() const { return flag.str(); }
 };
 
-using Flags = std::variant<BaseFlag, PositionalFlag, MultiFlag, SwitchFlag>;
+// using Flags = std::variant<BaseFlag, PositionalFlag, MultiFlag, SwitchFlag>;
+using Flags = std::variant<PositionalFlag>;
 using FlagsMap = std::unordered_map<string, Flags>;
-using FlagsNamesAlt = std::unordered_map<char, Flags>;
+using FlagsNamesAlt = std::unordered_map<char, string>;
 
 class NewArguments {
 private:
@@ -180,6 +181,7 @@ private:
 
   void record(int position, const string &name, const string &help,
               bool obligatory) {
+
     if (const auto &[it, inserted] =
             args.try_emplace(name, std::in_place_type<PositionalFlag>, position,
                              name, help, obligatory);
@@ -196,6 +198,24 @@ private:
           },
           it->second);
     }
+    //    std::cerr << it->first << "\n";
+    //    if (const auto &[it, inserted] =
+    //            args.try_emplace(name, std::in_place_type<PositionalFlag>,
+    //            position,
+    //                             name, help, obligatory);
+    //        !inserted)
+    //
+    //    else {
+    //      std::visit(
+    //          [this, &name](const auto &arg) {
+    //            if (const auto name_alt = arg.getNameAlt(); name_alt)
+    //              if (const auto &[it, inserted] =
+    //                      this->alt_names_map.try_emplace(name_alt, name);
+    //                  !inserted)
+    //                throw runerror{"Argument " + name + " alredy exists!"};
+    //          },
+    //          it->second);
+    //    }
   }
 
   template <class T, class... Args>
@@ -218,6 +238,8 @@ private:
   }
 
 public:
+  NewArguments() = default;
+
   void addPositional(const string &name, const string &help,
                      bool obligatory = false) {
     //    if (const auto &[it, inserted] =
@@ -229,7 +251,8 @@ public:
     //    else
     //      record(it->second);
 
-    record(static_cast<int>(positional.size() + 1), name, help, obligatory);
+    record<PositionalFlag>(name, static_cast<int>(positional.size() + 1), name,
+                           help, obligatory);
   }
 
   //  void addArgument(const string &name, const string &help, char alt_name,
@@ -270,6 +293,8 @@ public:
 
   string str() const {
     sstream output;
+
+    output << "Arguemnts:\n";
 
     for (const auto &[key, arg] : args)
       std::visit([&output](auto &arg) { output << arg.str() << "\n"; }, arg);
