@@ -409,13 +409,10 @@ public:
     return getValue(name, backup);
   }
 
-  auto iterateValues(const string &name) const {
-
+  auto getIterable(const string &name, char sep = 34) const {
     return std::visit(
-        [](auto &&arg) {
-          if (!arg.isSet())
-            throw runerror{"Argument " + arg.getName() + " is not set!"};
-          return StringDecompose::str_split(*arg.getValue(), 34, true);
+        [&sep](auto &&arg) {
+          return StringDecompose::str_split(*arg.getValue(""), sep, true);
         },
         getArg(name));
   }
