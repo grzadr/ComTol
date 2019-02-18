@@ -400,14 +400,22 @@ public:
   }
 
   auto getValue(const string &name, const string &backup) const {
-    return std::visit([&backup](auto &&arg) { return arg.getValue(backup); },
-                      getArg(name));
+    return getValue(name).value_or(backup);
+  }
+
+  auto operator()(const string &name) const { return getValue(name); }
+
+  auto operator()(const string &name, const string &backup) const {
+    return getValue(name, backup);
   }
 
   auto iterateValues(const string &name) const {
+
     return std::visit(
         [](auto &&arg) {
-          return StringDecompose::str_split(arg.getValue(), 34);
+          if (!arg.isSet())
+            throw runerror{"Argument " + arg.getName() + " is not set!"};
+          return StringDecompose::str_split(*arg.getValue(), 34, true);
         },
         getArg(name));
   }
