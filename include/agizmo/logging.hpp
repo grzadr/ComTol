@@ -61,9 +61,9 @@ public:
     auto seconds = this->getSeconds() % 60;
     auto mili = this->getMili() % 1000;
 
-    output << std::setw(2) << std::setfill('0') << hours << ":" << std::setw(2)
-           << std::setfill('0') << minutes << ":" << std::setw(2)
-           << std::setfill('0') << seconds << "." << std::setw(3)
+    output << std::setw(2) << std::setfill('0') << hours << "h:" << std::setw(2)
+           << std::setfill('0') << minutes << "m:" << std::setw(2)
+           << std::setfill('0') << seconds << "s." << std::setw(3)
            << std::setfill('0') << mili;
 
     return output.str();
