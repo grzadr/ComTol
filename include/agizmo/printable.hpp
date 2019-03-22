@@ -24,20 +24,19 @@ using std::string;
 using std::variant;
 using std::vector;
 
-template <typename Type>
-struct PrintableVector {
+template <typename Type> struct PrintableVector {
   vector<Type> value{};
 
   PrintableVector() = default;
   PrintableVector(std::initializer_list<Type> input) : value{input} {}
-  template <class InputIt>
-  PrintableVector(InputIt first, InputIt last) {
+  template <class InputIt> PrintableVector(InputIt first, InputIt last) {
     value = vector<Type>(first, last);
   }
   PrintableVector(vector<Type> input) : value{input} {}
 
   string str() const {
-    if (value.empty()) return "{}";
+    if (value.empty())
+      return "{}";
 
     return "{" + StringCompose::str_join(value.begin(), value.end(), ",") + "}";
   }
@@ -60,8 +59,7 @@ struct PrintableVector {
   }
 };
 
-template <typename Type = int>
-struct NestedVector {
+template <typename Type = int> struct NestedVector {
   vector<PrintableVector<Type>> values{};
 
   NestedVector() = default;
@@ -102,16 +100,14 @@ struct NestedVector {
   }
 };
 
-template <typename T>
-string type_name();
+template <typename T> string type_name();
 
-template <class Type>
-class PrintableOptional {
- private:
+template <class Type> class PrintableOptional {
+private:
   variant<optional<Type>, optional<pair<Type, Type>>> value;
   //  optional<Type> value{std::nullopt};
 
- public:
+public:
   PrintableOptional() = delete;
   PrintableOptional(const optional<Type> value) : value{value} {}
   PrintableOptional(const optional<pair<Type, Type>> value) : value{value} {}
@@ -153,11 +149,11 @@ template <class Key, class Value>
 using values_map = std::unordered_map<Key, Value>;
 
 class PrintableStrMap {
- private:
+private:
   values_map<string, opt_str> items{};
   vector<string> keys{};
 
- public:
+public:
   PrintableStrMap() = default;
   PrintableStrMap(const string &source, char names = ';', char values = '=',
                   char quotes = 0) {
@@ -204,7 +200,8 @@ class PrintableStrMap {
 
   void map_fields(const string &source, char names = ';', char values = '=',
                   char quotes = 0) {
-    if (!source.size()) return;
+    if (!source.size())
+      return;
 
     for (auto ele :
          (quotes == 0
@@ -228,8 +225,10 @@ class PrintableStrMap {
 
   void map_fields(const vec_str &keys, const vec_str &values) {
     if (keys.size() != values.size()) {
-      std::cerr << StringCompose::str_join(keys, ";") << "\n";
-      std::cerr << StringCompose::str_join(values, ";") << "\n";
+      std::cerr << "Keys: " << keys.size() << "\n"
+                << StringCompose::str_join(keys, ";") << "\n"
+                << "Values: " << values.size() << "\n"
+                << StringCompose::str_join(values, ";") << "\n";
       throw runtime_error{"keys and values vectors have different sizes!"};
     }
 
@@ -243,19 +242,22 @@ class PrintableStrMap {
 
   string join_fields(bool ordered = true, char names = ';',
                      char values = '=') const {
-    if (items.empty()) return "";
+    if (items.empty())
+      return "";
 
     sstream output;
 
     if (ordered) {
       for (const auto &key : keys) {
         output << names << key;
-        if (const auto &value = items.at(key)) output << values << *value;
+        if (const auto &value = items.at(key))
+          output << values << *value;
       }
     } else {
       for (const auto &[key, value] : items) {
         output << names << key;
-        if (value) output << values << *value;
+        if (value)
+          output << values << *value;
       }
     }
 
@@ -266,7 +268,8 @@ class PrintableStrMap {
   string join_fields(It begin, It end, char names = ';', char values = '=',
                      std::function<string(const string &)> modify =
                          [](const string &ele) { return ele; }) const {
-    if (items.empty()) return "";
+    if (items.empty())
+      return "";
 
     sstream output;
 
@@ -274,7 +277,8 @@ class PrintableStrMap {
       if (const auto item = this->get(*key)) {
         output << names << *key;
         if (const auto &value = *item)
-          if (value) output << values << modify(*value);
+          if (value)
+            output << values << modify(*value);
       }
     }
 
@@ -287,4 +291,4 @@ class PrintableStrMap {
     return stream << item.str();
   }
 };
-}  // namespace AGizmo::Printable
+} // namespace AGizmo::Printable
