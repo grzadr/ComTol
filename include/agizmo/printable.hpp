@@ -24,6 +24,8 @@ using std::string;
 using std::variant;
 using std::vector;
 
+using runerror = std::runtime_error;
+
 template <typename Type> struct PrintableVector {
   vector<Type> value{};
 
@@ -192,6 +194,13 @@ public:
       return (*result).value_or(empty);
     else
       return value;
+  }
+
+  opt_str getValue(const string &key) const {
+    if (auto result = get(key))
+      return *result;
+    else
+      throw runerror{"Key '" + key + "' is missing"};
   }
 
   bool has(const string &key) const {
