@@ -3,12 +3,14 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <iostream>
 
 namespace AGizmo::Logging {
 
 using steady_time_point = std::chrono::time_point<std::chrono::steady_clock>;
 using steady_duration = std::chrono::duration<double>;
 using sstream = std::stringstream;
+using std::ostream;
 
 class Timer {
 public:
@@ -23,7 +25,7 @@ public:
     this->start = point;
   }
 
-  steady_duration stop(steady_time_point point = Timer::now()) {
+  steady_duration mark(steady_time_point point = Timer::now()) {
     this->end = point;
     this->elapsed = end - start;
     return elapsed;
@@ -67,6 +69,10 @@ public:
            << std::setfill('0') << mili;
 
     return output.str();
+  }
+
+  friend ostream &operator<<(ostream &stream, const Timer &item) {
+    return stream << item.str();
   }
 
 private:
