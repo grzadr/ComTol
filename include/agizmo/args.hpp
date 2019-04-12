@@ -237,7 +237,9 @@ using FlagsNamesAlt = std::unordered_map<char, string>;
 class Arguments {
 private:
   // Options
-  bool allow_overwrite{true};
+
+  char help_alt{'h'};
+  string help_flag{"help"};
 
   // Arguments
   FlagsMap args{};
@@ -249,7 +251,7 @@ private:
   vec_str positional_args;
 
   void insertPositional(const string &name) {
-    cerr << "Inserting\n";
+    // cerr << "Inserting\n";
     positional_args.emplace_back(name);
   }
 
@@ -338,9 +340,25 @@ private:
     }
   }
 
+  bool verify() const {
+    int check = 0;
+
+    cerr << "Verifying arguments arguments\n";
+    for (const auto &[arg_name, arg] : args) {
+      std::visit(
+          [&check](auto &&arg) {
+            cerr << arg.str() << "\n";
+            if (arg.isObligatory() && !arg.isSet()) {
+              check++;
+              cerr << "Obligatory argument not set -> " + arg.getName() << "\n";
+            }
+          },
+          arg);
+    }
+  }
+
 public:
   Arguments() = default;
-  Arguments(bool allow_overwrite) : allow_overwrite{allow_overwrite} {}
 
   void addPositional(const string &name, const string &help,
                      bool obligatory = false) {
@@ -374,6 +392,15 @@ public:
   void addMultiObligatory(const string &name, const string &help,
                           char alt_name = 0) {
     record<MultiFlag>(name, name, help, alt_name, true);
+  }
+
+  void remapHelp(const char flag) { help_alt = flag; }
+  void remapHelp(const string &flag) { help_flag = flag; }
+  void disableHelpShort() { remapHelp(0); }
+  void disableHelpLong() { remapHelp(""); }
+  void disableHelp() {
+    disableHelpShort();
+    disableHelpLong();
   }
 
   auto begin() const { return this->args.begin(); }
@@ -490,22 +517,16 @@ public:
         setValue(current_position++, argv[i]);
     }
 
-    int check = 0;
+    return this->verify();
+  }
 
-    cerr << "Processed arguments\n";
-    for (const auto &[arg_name, arg] : args) {
-      std::visit(
-          [&check](auto &&arg) {
-            cerr << arg.str() << "\n";
-            if (arg.isObligatory() && !arg.isSet()) {
-              check++;
-              cerr << "Obligatory argument not set -> " + arg.getName() << "\n";
-            }
-          },
-          arg);
+  string getHelp() const {
+    sstream output;
+
+    for (const auto &[name, arg] : args) {
     }
 
-    return check != 0;
+    return output.str();
   }
 }; // namespace AGizmo::Args
 
