@@ -10,6 +10,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <tuple>
 
 #include "basic.hpp"
 
@@ -29,6 +30,37 @@ using vec_str = vector<string>;
 using chours = std::chrono::hours;
 using cminutes = std::chrono::minutes;
 using cseconds = std::chrono::seconds;
+
+namespace StringSearch {
+
+// Function counts all occurences of character in string.
+// Check starts from pos position. If pos is string::npos
+// it checks from the beginning of the string.
+// If pos is bigger than string size it returns 0.
+inline auto contains(const string &source, const char query, size_t pos = 0) {
+  return source.find(query, pos) != string::npos;
+}
+
+inline auto count_all(const string &source, char query, size_t pos = 0) {
+  auto first =
+      next(begin(source), (pos == string::npos) ? 0 : static_cast<long>(pos));
+  auto last = end(source);
+  if (first > last)
+    return 0l;
+  return count(first, last, query);
+}
+
+inline auto str_starts_with(const string &source, const string &query) {
+  return query.size() <= source.size() &&
+         query == source.substr(0, query.size());
+}
+
+inline auto str_ends_with(const string &source, const string &query) {
+  return query.size() <= source.size() &&
+         query == source.substr(source.size() - query.size());
+}
+
+} // namespace StringSearch
 
 namespace StringFormat {
 
@@ -406,6 +438,48 @@ inline vec_str str_split(const string &source, char sep, bool empty) {
   return result;
 }
 
+inline vec_str str_split_quoted(const string &source, char sep, char quote) {
+  if (!source.size())
+    return vec_str{};
+
+  vec_str output{};
+  string temp{};
+  for (const auto &ele : str_split(source, sep, true)) {
+    // Debug
+    //    std::cerr << "temp.empty(): " << temp.empty() << "\n"
+    //              << "count: " << StringSearch::count_all(ele, quote) << "\n"
+    //              << ele << "\n";
+    if (ele.empty()) {
+      if (temp.empty())
+        output.emplace_back(ele);
+      else
+        temp + sep + sep;
+    } else {
+      if (temp.empty()) {
+        if (StringSearch::count_all(ele, quote) % 2 == 0)
+          output.emplace_back(ele);
+        else
+          temp = ele;
+      } else {
+        if (auto count = StringSearch::count_all(ele, quote); !count)
+          temp += sep + ele;
+        else if (count % 2 == 0)
+          throw runtime_error{
+              source + "\n\n includes unclosed quatiotation in \n\n" + ele};
+        else {
+          output.emplace_back(temp + ele);
+          temp = "";
+        }
+      }
+    }
+  }
+
+  if (!temp.empty())
+    throw runtime_error{"'" + temp + "' is not empty '" + "' "};
+
+  return output;
+}
+
 inline vec_str str_split(const string &source, string sep = "\t",
                          bool empty = true) {
   if (sep.empty() || source.empty())
@@ -474,29 +548,33 @@ inline map_str_opt str_map_fields(const string &source, char fields = ';',
   return result;
 }
 
+using str_pair = std::pair<string, string>;
+
+inline str_pair str_split_in_half(const string &source, char mark) noexcept {
+  if (source.empty())
+    return {"", ""};
+
+  if (auto pos = source.find(mark);
+      pos == string::npos || pos == source.size() - 1)
+    return {source, ""};
+  else if (pos == 0)
+    return {"", source};
+  else
+    return {source.substr(0, pos), source.substr(pos + 1)};
+}
+
+inline string str_extract_before(const string &source,
+                                 const char &terminator) noexcept {
+  if (source.empty())
+    return "";
+
+  if (auto pos = source.find_first_of(terminator); pos != string::npos)
+    return source.substr(0, pos);
+  else
+    return source;
+}
+
 } // namespace StringDecompose
-
-namespace StringSearch {
-
-// Function counts all occurences of character in string.
-// Check starts from pos position. If pos is string::npos
-// it checks from the beginning of the string.
-// If pos is bigger than string size it returns 0.
-inline auto count_all(const string &source, char query, size_t pos = 0) {
-  auto first =
-      next(begin(source), (pos == string::npos) ? 0 : static_cast<long>(pos));
-  auto last = end(source);
-  if (first > last)
-    return 0l;
-  return count(first, last, query);
-}
-
-inline auto str_starts_with(const string &source, const string &query) {
-  return query.size() <= source.size() &&
-         query == source.substr(0, query.size());
-}
-
-} // namespace StringSearch
 
 //// Converts string containing fields separated with char fields and
 //// their values seperated by char values into map. If some field has no value,
