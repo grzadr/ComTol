@@ -47,7 +47,7 @@ inline auto count_all(const string &source, char query, size_t pos = 0) {
   auto last = end(source);
   if (first > last)
     return 0l;
-  return count(first, last, query);
+  return std::count(first, last, query);
 }
 
 inline auto str_starts_with(const string &source, const string &query) {
@@ -180,7 +180,8 @@ inline string str_clean(const string &source, bool ends = true,
   string result{ends ? str_clean_ends(source) : source};
   auto first = result.begin();
   auto last = result.end();
-  replace_if(first, last, [](char c) { return isspace(c); }, ' ');
+  replace_if(
+      first, last, [](char c) { return isspace(c); }, ' ');
   last = unique(first, result.end(),
                 [](char l, char r) { return (l == ' ' && r == ' '); });
   return string(first, last);

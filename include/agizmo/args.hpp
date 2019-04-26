@@ -50,7 +50,7 @@ public:
   // Checkers
 
   bool isObligatory() const noexcept { return obligatory; }
-  bool isSet() const { return value.has_value(); }
+  bool isSet() const { return this->value.has_value(); }
 
   // Getters
 
@@ -62,23 +62,32 @@ public:
 
   string getHelp() const { return help; }
 
+  int getValueCount(char sep) const {
+    if (this->isSet())
+      return static_cast<int>(StringSearch::count_all(*value, sep) + 1);
+    else
+      return 0;
+  }
+
   // Setters
 
+  void makeObligatory() { this->obligatory = true; }
+
   opt_str setValue(opt_str value = nullopt) {
-    if (value.has_value() && StringSearch::str_starts_with(*value, "-"))
-      throw runerror{"Value '" + *value + "' is not vali for argument '" +
-                     name + "'"};
+    //    if (value.has_value() && StringSearch::str_starts_with(*value, "-"))
+    //      throw runerror{"Value '" + *value + "' is not valid for argument '"
+    //      +
+    //                     name + "'"};
     std::swap(value, this->value);
     return value;
   }
 
-  opt_str append(const string &value, char sep = 34) {
-    if (this->value.has_value())
+  opt_str setValue(string value, char sep) {
+    if (this->isSet())
       *this->value += string(1, sep) + value;
     else
       this->value = value;
-
-    return value;
+    return nullopt;
   }
 
   opt_str reset() { return setValue(); }
@@ -110,11 +119,14 @@ public:
   string getName() const { return flag.getName(); }
   char getNameAlt() const { return flag.getNameAlt(); }
   opt_str getValue() const { return flag.getValue(); }
-  opt_str getValue(const string &backup) const { return flag.getValue(backup); }
+  string getValue(const string &backup) const { return flag.getValue(backup); }
 
   // Setters
 
   opt_str setValue(const string &value) { return flag.setValue(value); }
+  opt_str setValue(const string &value, char sep) {
+    return flag.setValue(value, sep);
+  }
 
   string str() const {
     sstream output;
@@ -124,16 +136,71 @@ public:
   }
 };
 
+class MultiFlag {
+private:
+  static const char sep = 34;
+  BaseFlag flag;
+  int lowest{0};
+  int saturation{0};
+
+public:
+  MultiFlag() = default;
+  MultiFlag(const string &name, const string &help, char name_alt, int lowest,
+            int saturation)
+      : flag{name, help, name_alt, nullopt, lowest > 0}, lowest{lowest},
+        saturation{saturation} {
+    if (saturation < 0)
+      throw runerror{"Saturation value must be at least 0 or greater."};
+
+    if (lowest < 0)
+      throw runerror{"Lowest value must be at least 0 or greater."};
+  }
+
+  //
+  bool isSet() const { return flag.isSet(); }
+  bool isObligatory() const { return lowest; }
+  bool isLoadable() const {
+    return saturation < 1 || getValueCount() < saturation + 1;
+  }
+  bool isSaturated() const { return not this->isLoadable(); }
+
+  // Getters
+
+  string getName() const { return flag.getName(); }
+  char getNameAlt() const { return flag.getNameAlt(); }
+  opt_str getValue() const { return flag.getValue(); }
+  string getValue(const string &backup) const { return flag.getValue(backup); }
+  int getValueCount() const { return flag.getValueCount(sep); }
+  int getSaturation() const { return this->saturation; }
+
+  // Setters
+
+  //  opt_str setValue(const string &value) {
+  opt_str setValue(const string &value) {
+    if (this->isLoadable())
+      return flag.setValue(value, sep);
+    else
+      return {value};
+  }
+
+  string str() const {
+    sstream output;
+    output << "MultiFlag: " << flag.str()
+           << " Value: " << std::quoted(flag.getValue().value_or("__Empty__"));
+    return output.str();
+  }
+};
+
 class PositionalFlag {
 private:
-  BaseFlag flag;
-  int position;
+  MultiFlag flag{};
+  int position{1};
 
 public:
   PositionalFlag() = default;
   PositionalFlag(int position, const string &name, const string &help,
-                 bool obligatory)
-      : flag{name, help, 0, nullopt, obligatory} {
+                 int lowest, int saturation)
+      : flag{name, help, 0, lowest, saturation}, position{position} {
     if (position < 1)
       throw runerror{"Position must be an positive integer!"};
     else
@@ -144,13 +211,15 @@ public:
 
   bool isSet() const { return flag.isSet(); }
   bool isObligatory() const { return flag.isObligatory(); }
+  bool isLoadable() const { return this->flag.isLoadable(); }
+  bool isSaturated() const { return not this->flag.isSaturated(); }
 
   // Getters
 
   string getName() const { return flag.getName(); }
   char getNameAlt() const { return 0; }
   opt_str getValue() const { return flag.getValue(); }
-  opt_str getValue(const string &backup) const { return flag.getValue(backup); }
+  string getValue(const string &backup) const { return flag.getValue(backup); }
 
   // Setters
 
@@ -159,39 +228,6 @@ public:
   string str() const {
     sstream output;
     output << "@" << position << " " << flag.str()
-           << " Value: " << std::quoted(flag.getValue().value_or("__Empty__"));
-    return output.str();
-  }
-};
-
-class MultiFlag {
-private:
-  BaseFlag flag;
-
-public:
-  MultiFlag() = default;
-  MultiFlag(const string &name, const string &help, char name_alt,
-            bool obligatory)
-      : flag{name, help, name_alt, nullopt, obligatory} {}
-
-  //
-  bool isSet() const { return flag.isSet(); }
-  bool isObligatory() const { return flag.isObligatory(); }
-
-  // Getters
-
-  string getName() const { return flag.getName(); }
-  char getNameAlt() const { return flag.getNameAlt(); }
-  opt_str getValue() const { return flag.getValue(); }
-  opt_str getValue(const string &backup) const { return flag.getValue(backup); }
-
-  // Setters
-
-  opt_str setValue(const string &value) { return flag.append(value); }
-
-  string str() const {
-    sstream output;
-    output << "M: " << flag.str()
            << " Value: " << std::quoted(flag.getValue().value_or("__Empty__"));
     return output.str();
   }
@@ -219,7 +255,7 @@ public:
   string getName() const { return flag.getName(); }
   char getNameAlt() const { return flag.getNameAlt(); }
   opt_str getValue() const { return flag.getValue(); }
-  opt_str getValue(const string &backup) const { return flag.getValue(backup); }
+  string getValue(const string &backup) const { return flag.getValue(backup); }
 
   string str() const {
     sstream output;
@@ -238,20 +274,18 @@ class Arguments {
 private:
   // Options
 
-  char help_alt{'h'};
+  char help_flag_alt{'h'};
   string help_flag{"help"};
 
   // Arguments
   FlagsMap args{};
   opt_int numerical_arg;
-  //  vector<Flags> args{};
 
   // Maps
   FlagsNamesAlt alt_names_map;
   vec_str positional_args;
 
   void insertPositional(const string &name) {
-    // cerr << "Inserting\n";
     positional_args.emplace_back(name);
   }
 
@@ -355,15 +389,22 @@ private:
           },
           arg);
     }
+
+    return check != 0;
   }
 
 public:
   Arguments() = default;
 
-  void addPositional(const string &name, const string &help,
-                     bool obligatory = false) {
+  void addPositional(const string &name, const string &help, int lowest = 1) {
     record<PositionalFlag>(name, static_cast<int>(positional_args.size() + 1),
-                           name, help, obligatory);
+                           name, help, lowest, 0);
+  }
+
+  void addPositional(const string &name, const string &help, int lowest,
+                     int saturation) {
+    record<PositionalFlag>(name, static_cast<int>(positional_args.size() + 1),
+                           name, help, lowest, saturation);
   }
 
   void addArgument(const string &name, const string &help, char alt_name,
@@ -394,10 +435,10 @@ public:
     record<MultiFlag>(name, name, help, alt_name, true);
   }
 
-  void remapHelp(const char flag) { help_alt = flag; }
-  void remapHelp(const string &flag) { help_flag = flag; }
-  void disableHelpShort() { remapHelp(0); }
-  void disableHelpLong() { remapHelp(""); }
+  void setHelp(const char flag) { help_flag_alt = flag; }
+  void setHelp(const string &flag) { help_flag = flag; }
+  void disableHelpShort() { setHelp(0); }
+  void disableHelpLong() { setHelp(""); }
   void disableHelp() {
     disableHelpShort();
     disableHelpLong();
@@ -439,7 +480,7 @@ public:
   auto getIterable(const string &name, char sep = 34) const {
     return std::visit(
         [&sep](auto &&arg) {
-          return StringDecompose::str_split(*arg.getValue(""), sep, true);
+          return StringDecompose::str_split(arg.getValue(""), sep, true);
         },
         getArg(name));
   }
@@ -523,8 +564,8 @@ public:
   string getHelp() const {
     sstream output;
 
-    for (const auto &[name, arg] : args) {
-    }
+    //    for (const auto &[name, arg] : args) {
+    //    }
 
     return output.str();
   }
