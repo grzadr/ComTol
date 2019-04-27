@@ -55,9 +55,17 @@ inline auto str_starts_with(const string &source, const string &query) {
          query == source.substr(0, query.size());
 }
 
+inline auto str_starts_with(const string &source, const char query) {
+  return 1 <= source.size() && query == source.front();
+}
+
 inline auto str_ends_with(const string &source, const string &query) {
   return query.size() <= source.size() &&
          query == source.substr(source.size() - query.size());
+}
+
+inline auto str_ends_with(const string &source, const char query) {
+  return 1 <= source.size() && query == source.back();
 }
 
 } // namespace StringSearch
@@ -180,8 +188,7 @@ inline string str_clean(const string &source, bool ends = true,
   string result{ends ? str_clean_ends(source) : source};
   auto first = result.begin();
   auto last = result.end();
-  replace_if(
-      first, last, [](char c) { return isspace(c); }, ' ');
+  replace_if(first, last, [](char c) { return isspace(c); }, ' ');
   last = unique(first, result.end(),
                 [](char l, char r) { return (l == ' ' && r == ' '); });
   return string(first, last);
@@ -309,6 +316,34 @@ inline string str_reverse(string result) {
     return "";
   reverse(result.begin(), result.end());
   return result;
+}
+
+inline string str_remove_prefix(const string &source, const string &prefix) {
+  if (!StringSearch::str_starts_with(source, prefix))
+    return source;
+  else
+    return source.substr(prefix.length());
+}
+
+inline string str_remove_prefix(const string &source, const char prefix) {
+  if (!StringSearch::str_starts_with(source, prefix))
+    return source;
+  else
+    return source.substr(1);
+}
+
+inline string str_remove_suffix(const string &source, const string &suffix) {
+  if (!StringSearch::str_ends_with(source, suffix))
+    return source;
+  else
+    return source.substr(0, source.length() - suffix.length());
+}
+
+inline string str_remove_suffix(const string &source, const char suffix) {
+  if (!StringSearch::str_ends_with(source, suffix))
+    return source;
+  else
+    return source.substr(0, source.length() - 1);
 }
 
 } // namespace StringFormat
