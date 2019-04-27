@@ -449,6 +449,8 @@ private:
     }
   }
 
+  void parsePositional(const vec_str &positional) {}
+
   bool verify() const {
     int check = 0;
 
@@ -608,7 +610,7 @@ public:
       // If single --  is encountered remainging flags are
       // interpreted as positional arguments
       if (temp == "--") {
-        for (; i < argc; ++i)
+        for (++i; i < argc; ++i)
           temp_positional.emplace_back(argv[i]);
       } else if (StringSearch::str_starts_with(temp, '-') &&
                  temp.length() > 1) {
@@ -621,6 +623,8 @@ public:
       } else
         temp_positional.emplace_back(temp);
     }
+
+    this->parsePositional(temp_positional);
 
     return this->verify();
   }
