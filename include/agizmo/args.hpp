@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <optional>
 #include <ostream>
@@ -175,6 +176,7 @@ public:
   string getValue(const string &backup) const { return flag.getValue(backup); }
   int getValueCount() const { return flag.getValueCount(); }
   int getSaturation() const { return this->saturation; }
+  int getLowest() const { return this->lowest; }
   string getKind() const { return this->kind; }
 
   // Setters
@@ -203,6 +205,21 @@ public:
 
   //  opt_str setValue(const string &value) {
   void setValue(const string &value) { return flag.setValue(value); }
+
+  template <class It> void setValue(It &begin, const It end) {
+    const auto args_count = std::distance(begin, end);
+
+    if (this->getLowest() > args_count)
+      throw runerror{"Not enough arguments for PositionalFlag " +
+                     this->getName()};
+    else {
+      //      const auto args_max
+      while (begin < end) {
+        if (this->isLoadable())
+          this->setValue(*(begin++));
+      }
+    }
+  }
 
   string repr() const {
     sstream output;
@@ -239,6 +256,8 @@ public:
   string getValue(const string &backup) const { return flag.getValue(backup); }
   int getValueCount() const { return this->flag.getValueCount(); }
   string getKind() const { return this->kind; }
+  int getLowest() const { return this->flag.getLowest(); }
+  int getSaturation() const { return this->flag.getSaturation(); }
 
   // Setters
 
@@ -250,6 +269,10 @@ public:
       throw runerror{"Position must be an positive integer!"};
     else
       this->position = position;
+  }
+
+  template <class It> void setValue(It &begin, const It end) {
+    this->flag.setValue(begin, end);
   }
 
   // Display
@@ -308,13 +331,14 @@ private:
   // Arguments
   FlagsMap args{};
   opt_int numerical_arg;
+  vec_str positional_args;
 
   // Maps
   FlagsNamesAlt alt_names_map;
-  vec_str positional_args;
+  vec_str positional_map;
 
   void insertPositional(const string &name) {
-    positional_args.emplace_back(name);
+    positional_map.emplace_back(name);
   }
 
   template <class T, class... Args>
@@ -335,9 +359,6 @@ private:
             }
           },
           it->second);
-
-      if (std::holds_alternative<PositionalFlag>(it->second))
-        insertPositional(name);
     }
   }
 
@@ -378,8 +399,8 @@ private:
   }
 
   void setValue(size_t position, const string &value = "") {
-    if (position < positional_args.size())
-      setValue(positional_args[position], value);
+    if (position < positional_map.size())
+      setValue(positional_map[position], value);
     else
       throw runerror{"Argument with postion '" + to_string(position) +
                      "' was not added!"};
@@ -449,7 +470,16 @@ private:
     }
   }
 
-  void parsePositional(const vec_str &positional) {}
+  void parsePositional() {
+    if (positional_map.empty())
+      return;
+
+    auto pos_arg = this->positional_args.begin();
+    const auto pos_arg_end = this->positional_args.end();
+
+    for (const auto &name : positional_map)
+      std::get<PositionalFlag>(getArg(name)).setValue(pos_arg, pos_arg_end);
+  }
 
   bool verify() const {
     int check = 0;
@@ -473,15 +503,15 @@ private:
 public:
   Arguments() = default;
 
-  void addPositional(const string &name, const string &help, int lowest = 1) {
-    record<PositionalFlag>(name, static_cast<int>(positional_args.size() + 1),
-                           name, help, lowest, lowest);
-  }
-
   void addPositional(const string &name, const string &help, int lowest,
                      int saturation) {
-    record<PositionalFlag>(name, static_cast<int>(positional_args.size() + 1),
+    record<PositionalFlag>(name, static_cast<int>(positional_map.size() + 1),
                            name, help, lowest, saturation);
+    insertPositional(name);
+  }
+
+  void addPositional(const string &name, const string &help, int lowest = 1) {
+    this->addPositional(name, help, lowest, lowest);
   }
 
   void addArgument(const string &name, const string &help, char alt_name,
@@ -491,7 +521,7 @@ public:
 
   void addArgument(const string &name, const string &help,
                    optional<string> def_value = nullopt) {
-    record<RegularFlag>(name, name, help, 0, def_value, false);
+    this->addArgument(name, help, 0, def_value);
   }
 
   void addObligatory(const string &name, const string &help,
@@ -507,37 +537,32 @@ public:
     record<MultiFlag>(name, name, help, alt_name, 0, 0);
   }
 
-  void addMultiObligatory(const string &name, const string &help,
-                          char alt_name = 0) {
-    record<MultiFlag>(name, name, help, alt_name, 1, 0);
-  }
-
   void setLowest(string name, int lowest) {
-    if (auto &arg = getArg(name); std::holds_alternative<MultiFlag>(arg))
-      std::get<MultiFlag>(arg).setLowest(lowest);
-    else if (std::holds_alternative<PositionalFlag>(arg))
-      std::get<PositionalFlag>(arg).setLowest(lowest);
-    else
-      std::visit(
-          [](auto &arg) {
-            throw runerror{arg.getKind() +
-                           " flag doesn't support setLowest method."};
-          },
-          arg);
+    std::visit(
+        [lowest](auto &&arg) {
+          using T = std::decay_t<decltype(arg)>;
+          if constexpr (std::is_same_v<T, MultiFlag> ||
+                        std::is_same_v<T, PositionalFlag>)
+            arg.setLowest(lowest);
+          else
+            throw runerror{arg.getName() + "[" + arg.getKind() +
+                           "] flag doesn't support setLowest method."};
+        },
+        getArg(name));
   }
 
   void setSaturation(string name, int saturation) {
-    if (auto &arg = getArg(name); std::holds_alternative<MultiFlag>(arg))
-      std::get<MultiFlag>(arg).setSaturation(saturation);
-    else if (std::holds_alternative<PositionalFlag>(arg))
-      std::get<PositionalFlag>(arg).setSaturation(saturation);
-    else
-      std::visit(
-          [](auto &arg) {
-            throw runerror{arg.getKind() +
-                           " flag doesn't support setSaturation method."};
-          },
-          arg);
+    std::visit(
+        [saturation](auto &&arg) {
+          using T = std::decay_t<decltype(arg)>;
+          if constexpr (std::is_same_v<T, MultiFlag> ||
+                        std::is_same_v<T, PositionalFlag>)
+            arg.setSaturation(saturation);
+          else
+            throw runerror{arg.getName() + "[" + arg.getKind() +
+                           "] flag doesn't support setSaturation method."};
+        },
+        getArg(name));
   }
 
   void setHelp(const char flag) { help_flag_alt = flag; }
@@ -602,7 +627,7 @@ public:
   }
 
   bool parse(int argc, char *argv[]) {
-    vec_str temp_positional;
+    positional_args.clear();
 
     for (int i = 1; i < argc; ++i) {
       string temp = argv[i];
@@ -611,7 +636,7 @@ public:
       // interpreted as positional arguments
       if (temp == "--") {
         for (++i; i < argc; ++i)
-          temp_positional.emplace_back(argv[i]);
+          positional_args.emplace_back(argv[i]);
       } else if (StringSearch::str_starts_with(temp, '-') &&
                  temp.length() > 1) {
         if (StringSearch::contains(temp, '='))
@@ -621,10 +646,10 @@ public:
         else
           i += parseSingleDash(temp.substr(1), i + 1 < argc ? argv[i + 1] : "");
       } else
-        temp_positional.emplace_back(temp);
+        positional_args.emplace_back(temp);
     }
 
-    this->parsePositional(temp_positional);
+    this->parsePositional();
 
     return this->verify();
   }
