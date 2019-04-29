@@ -188,7 +188,8 @@ inline string str_clean(const string &source, bool ends = true,
   string result{ends ? str_clean_ends(source) : source};
   auto first = result.begin();
   auto last = result.end();
-  replace_if(first, last, [](char c) { return isspace(c); }, ' ');
+  replace_if(
+      first, last, [](char c) { return isspace(c); }, ' ');
   last = unique(first, result.end(),
                 [](char l, char r) { return (l == ' ' && r == ' '); });
   return string(first, last);
@@ -358,18 +359,24 @@ template <typename It> string str_join(It begin, It end, string sep = "\t") {
     return "";
 
   sstream output;
-  //  output << *begin;
-
   //  for_each(next(begin), end,
   //           [&output, sep](auto &ele) { output << sep << ele; });
-  //  ostream_joiner(output, sep);
   copy(begin, end, ostream_joiner(output, sep));
 
   return output.str();
 }
 
+template <typename It> string str_join(It begin, It end, char sep) {
+  str_join(begin, end, sep);
+}
+
 template <typename Container>
 string str_join(const Container &container, string sep = "\t") {
+  return str_join(container.begin(), container.end(), sep);
+}
+
+template <typename Container>
+string str_join(const Container &container, char sep) {
   return str_join(container.begin(), container.end(), sep);
 }
 
