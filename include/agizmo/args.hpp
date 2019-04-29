@@ -10,6 +10,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <variant>
 #include <vector>
 
@@ -28,50 +29,94 @@ using std::cerr;
 using opt_int = std::optional<int>;
 using opt_str = std::optional<string>;
 
-class BaseFlag {
-private:
+struct FlagInfo {
   string name{};
   string help{};
   char name_alt{0};
-  opt_str value{nullopt};
-  bool obligatory{false};
+
+  bool hasAltName() const noexcept { return name_alt; }
+
+  string str() const {
+    return name + (hasAltName() ? "/" + string(1, name_alt) : "");
+  }
+};
+
+struct FlagValue {
+  opt_str def_value{};
+  opt_str value{};
+
+  FlagValue() = default;
+  FlagValue(const opt_str &default_value) : def_value{default_value} {}
+
+  bool isSet() const noexcept { return this->value.has_value(); }
+  opt_str getValue() const noexcept { return isSet() ? value : def_value; }
+  string getValue(const string &backup) const noexcept {
+    if (const auto result = getValue())
+      return *result;
+    else
+      return backup;
+  }
+  void setValue(const opt_str &value) { this->value = value; }
+  void reset() { setValue(nullopt); }
+
+  void append(const string &value, char sep) {
+    if (this->isSet())
+      *this->value += string(1, sep) + value;
+    else
+      this->value = value;
+  }
+
+  FlagValue &operator=(const opt_str &value) {
+    setValue(value);
+    return *this;
+  }
+
+  FlagValue &operator=(const string &value) {
+    setValue(value);
+    return *this;
+  }
+};
+
+class RegularFlag {
+private:
+  FlagInfo info;
+  FlagValue value;
+  inline const static string kind{"RegularFlag"};
   char sep{0};
+  bool obligatory{false};
 
 public:
-  BaseFlag() = default;
-  BaseFlag(const string &name, const string &help, char name_alt,
-           const opt_str &default_value, bool obligatory, char sep = 0)
-      : name{name}, help{help}, name_alt{name_alt}, value{default_value},
-        obligatory{obligatory}, sep{sep} {
+  RegularFlag() = default;
+  RegularFlag(const string &name, const string &help, char name_alt,
+              const opt_str &default_value, bool obligatory, char sep = 0)
+      : info{name, help, name_alt}, value{default_value}, sep{sep},
+        obligatory{obligatory} {
     if (name.empty())
       throw runerror("Name of argument cannot be empty!");
     if (StringSearch::str_starts_with(name, "-"))
-      throw runerror{"Name cannot not start wuth '-' sign"};
+      throw runerror{"Name cannot not start with '-' sign"};
   }
 
   // Checkers
 
   bool isObligatory() const noexcept { return obligatory; }
-  bool isSet() const { return this->value.has_value(); }
-  bool isAppendable() const { return this->sep; }
+  bool isSet() const noexcept { return this->value.isSet(); }
+  bool isAppendable() const noexcept { return this->sep; }
 
   // Getters
 
-  string getName() const { return name; }
-  char getNameAlt() const { return name_alt; }
+  string getName() const noexcept { return this->info.name; }
+  char getNameAlt() const noexcept { return this->info.name_alt; }
+  string getHelp() const noexcept { return info.help; }
+  string getKind() const noexcept { return kind; }
 
-  opt_str getValue() const { return value; }
-  string getValue(const string &backup) const { return value.value_or(backup); }
+  opt_str getValue() const noexcept { return value.getValue(); }
+  string getValue(const string &backup) const noexcept {
+    return value.getValue(backup);
+  }
 
-  string getHelp() const { return help; }
-
-  int getValueCount() const {
-    if (!this->isSet())
-      return 0;
-    else if (!this->isAppendable())
-      return 1;
-    else
-      return static_cast<int>(StringSearch::count_all(*value, this->sep) + 1);
+  vec_str getIterable() const {
+    return StringDecompose::str_split(this->value.getValue(""), sep, true);
   }
 
   // Setters
@@ -83,71 +128,34 @@ public:
 
   void setValue(const opt_str &value) { this->value = value; }
 
-  void append(const string &value, char sep) {
-    if (this->isSet())
-      *this->value += string(1, sep) + value;
-    else
-      this->value = value;
+  void append(const string &value, const char sep) {
+    this->value.append(value, sep);
   }
 
   void setValue(const string &value) {
-    if (sep)
+    if (this->isAppendable())
       this->append(value, sep);
     else
       this->setValue(value);
   }
 
-  void reset() { setValue(nullopt); }
+  void reset() { value.reset(); }
 
   string repr() const {
-    return getName() + (name_alt ? "/" + string(1, name_alt) : "");
+    sstream output;
+    output << "RegularFlag: " << info.str()
+           << " Value: " << std::quoted(getValue("__Empty__"));
+    return output.str();
   }
 
   //  string str_help() const { return str(); }
 };
 
-class RegularFlag {
-private:
-  inline static const string kind{"Regular"};
-  BaseFlag flag;
-
-public:
-  RegularFlag() = default;
-  RegularFlag(const string &name, const string &help, char name_alt,
-              const opt_str &default_value, bool obligatory)
-      : flag{name, help, name_alt, default_value, obligatory} {}
-
-  // Checkers
-
-  bool isSet() const { return flag.isSet(); }
-  bool isObligatory() const { return flag.isObligatory(); }
-
-  // Getters
-
-  string getName() const { return flag.getName(); }
-  char getNameAlt() const { return flag.getNameAlt(); }
-  opt_str getValue() const { return flag.getValue(); }
-  string getValue(const string &backup) const { return flag.getValue(backup); }
-  string getKind() const { return this->kind; }
-
-  // Setters
-
-  void setValue(const string &value) { flag.setValue(value); }
-  void enableAppend(char sep) { this->flag.enableAppend(sep); }
-  void disableAppend() { this->flag.disableAppend(); }
-
-  string repr() const {
-    sstream output;
-    output << "R: " << flag.repr()
-           << " Value: " << std::quoted(flag.getValue().value_or("__Empty__"));
-    return output.str();
-  }
-};
-
 class MultiFlag {
 private:
   inline static const string kind{"Multi"};
-  BaseFlag flag;
+  FlagInfo info;
+  vec_str value;
   int lowest{0};
   int saturation{0};
 
@@ -155,36 +163,49 @@ public:
   MultiFlag() = default;
   MultiFlag(const string &name, const string &help, char name_alt, int lowest,
             int saturation)
-      : flag{name, help, name_alt, nullopt, lowest > 0, 34} {
+      : info{name, help, name_alt} {
     this->setLowest(lowest);
     this->setSaturation(saturation);
   }
 
   //
-  bool isSet() const { return flag.isSet(); }
-  bool isObligatory() const { return lowest; }
-  bool isLoadable() const {
+  [[nodiscard]] bool isSet() const noexcept { return !value.empty(); }
+  [[nodiscard]] bool isObligatory() const noexcept { return lowest; }
+  [[nodiscard]] bool isLoadable() const noexcept {
     return saturation < 1 || getValueCount() < saturation + 1;
   }
-  bool isSaturated() const { return not this->isLoadable(); }
 
   // Getters
 
-  string getName() const { return flag.getName(); }
-  char getNameAlt() const { return flag.getNameAlt(); }
-  opt_str getValue() const { return flag.getValue(); }
-  string getValue(const string &backup) const { return flag.getValue(backup); }
-  int getValueCount() const { return flag.getValueCount(); }
+  string getName() const { return info.name; }
+  char getNameAlt() const { return info.name_alt; }
+  string getHelp() const { return info.help; }
+  string getKind() const { return this->kind; }
+
+  opt_str getValue() const {
+    if (this->isSet())
+      return StringCompose::str_join(this->value, 34);
+    else
+      return {};
+  }
+
+  string getValue(const string &backup) const {
+    return isSet() ? StringCompose::str_join(this->value, 34) : backup;
+  }
+
+  vec_str getIterable() const { return this->value; }
+  //  string getValue(const string &backup) const { return
+  //  flag.getValue(backup); }
+  int getValueCount() const { return static_cast<int>(value.size()); }
   int getSaturation() const { return this->saturation; }
   int getLowest() const { return this->lowest; }
-  string getKind() const { return this->kind; }
 
   // Setters
 
   void setSaturation(int saturation) {
     if (saturation < 0)
       throw runerror{"Saturation value must be at least 0 or greater."};
-    else if (saturation < this->lowest)
+    else if (saturation && saturation < this->lowest)
       throw runerror{"Saturation " + std::to_string(saturation) +
                      " is lower than the lowest posiible value " +
                      std::to_string(lowest)};
@@ -195,7 +216,7 @@ public:
   void setLowest(int lowest) {
     if (lowest < 0)
       throw runerror{"Lowest value must be at least 0 or greater."};
-    else if (!this->saturation && lowest > this->saturation)
+    else if (this->saturation && lowest > this->saturation)
       throw runerror{"Lowest " + std::to_string(lowest) +
                      " value is higher than saturation " +
                      std::to_string(this->saturation)};
@@ -204,7 +225,7 @@ public:
   }
 
   //  opt_str setValue(const string &value) {
-  void setValue(const string &value) { return flag.setValue(value); }
+  void setValue(const string &value) { this->value.emplace_back(value); }
 
   template <class It> void setValue(It &begin, const It end) {
     const auto args_count = std::distance(begin, end);
@@ -223,41 +244,43 @@ public:
 
   string repr() const {
     sstream output;
-    output << "MultiFlag: " << flag.repr()
-           << " Value: " << std::quoted(flag.getValue().value_or("__Empty__"));
+    output << "MultiFlag: " << info.str()
+           << " Value: " << std::quoted(getValue("__Empty__"));
     return output.str();
   }
 };
 
 class PositionalFlag {
 private:
-  MultiFlag flag{};
-  int position{1};
   inline const static string kind{"Positional"};
+  int position{1};
+  MultiFlag flag{};
 
 public:
   PositionalFlag() = default;
   PositionalFlag(int position, const string &name, const string &help,
                  int lowest, int saturation)
-      : flag{name, help, 0, lowest, saturation}, position{position} {}
+      : position{position}, flag{name, help, 0, lowest, saturation} {}
 
   // Checkers
 
   bool isSet() const { return flag.isSet(); }
   bool isObligatory() const { return flag.isObligatory(); }
   bool isLoadable() const { return this->flag.isLoadable(); }
-  bool isSaturated() const { return not this->flag.isSaturated(); }
 
   // Getters
 
   string getName() const { return flag.getName(); }
-  char getNameAlt() const { return 0; }
+  char getNameAlt() const { return flag.getNameAlt(); }
+  string getHelp() const { return flag.getHelp(); }
+  string getKind() const { return this->kind; }
+
   opt_str getValue() const { return flag.getValue(); }
   string getValue(const string &backup) const { return flag.getValue(backup); }
-  int getValueCount() const { return this->flag.getValueCount(); }
-  string getKind() const { return this->kind; }
-  int getLowest() const { return this->flag.getLowest(); }
-  int getSaturation() const { return this->flag.getSaturation(); }
+  vec_str getIterable() const { return flag.getIterable(); }
+  int getValueCount() const { return flag.getValueCount(); }
+  int getLowest() const { return flag.getLowest(); }
+  int getSaturation() const { return flag.getSaturation(); }
 
   // Setters
 
@@ -287,31 +310,47 @@ public:
 
 class SwitchFlag {
 private:
-  BaseFlag flag;
   inline const static string kind = "Switch";
+  FlagInfo info;
+  bool value;
 
 public:
   SwitchFlag() = default;
   SwitchFlag(const string &name, const string &help, char name_alt)
-      : flag{name, help, name_alt, nullopt, false} {}
+      : info{name, help, name_alt} {}
 
-  bool isSet() const { return flag.isSet(); }
+  bool isSet() const { return value; }
   bool isObligatory() const { return false; }
 
-  void setValue(const string &value = "") { return flag.setValue(value); }
+  void setValue(const bool value = true) { this->value = value; }
+  void setValue(const opt_str &value) { setValue(value.has_value()); }
+  void reset() { value = false; }
 
   // Getters
 
-  string getName() const { return flag.getName(); }
-  char getNameAlt() const { return flag.getNameAlt(); }
-  opt_str getValue() const { return flag.getValue(); }
-  string getValue(const string &backup) const { return flag.getValue(backup); }
+  string getName() const { return info.name; }
+  char getNameAlt() const { return info.name_alt; }
+  string getHelp() const { return info.help; }
   string getKind() const { return this->kind; }
+  opt_str getValue() const {
+    if (value)
+      return "";
+    else
+      return nullopt;
+  }
+  string getValue(const string &backup) const {
+    if (value)
+      return "";
+    else
+      return backup;
+  }
+
+  vec_str getIterable() const { return isSet() ? vec_str{} : vec_str{""}; }
 
   string repr() const {
     sstream output;
-    output << "S: " << flag.repr() << " Value: "
-           << std::quoted(flag.isSet() ? "__Set__" : "__NotSet__");
+    output << "Switch: " << info.str() << " Value: "
+           << std::quoted(this->isSet() ? "__Set__" : "__NotSet__");
     return output.str();
   }
 };
@@ -321,12 +360,15 @@ using Flags = std::variant<RegularFlag, PositionalFlag, MultiFlag, SwitchFlag>;
 using FlagsMap = std::unordered_map<string, Flags>;
 using FlagsNamesAlt = std::unordered_map<char, string>;
 
+using FlagOpt = std::optional<std::reference_wrapper<Flags>>;
+
 class Arguments {
 private:
   // Options
 
   char help_flag_alt{'h'};
   string help_flag{"help"};
+  bool invoke_help{false};
 
   // Arguments
   FlagsMap args{};
@@ -362,11 +404,11 @@ private:
     }
   }
 
-  bool _contains(const string &name) const {
+  bool contains(const string &name) const {
     return args.find(name) != args.end();
   }
 
-  opt_str _contains(const char name) const {
+  opt_str contains(const char name) const {
     if (auto it = alt_names_map.find(name); it != alt_names_map.end())
       return it->second;
     else
@@ -374,28 +416,32 @@ private:
   }
 
   auto &getArg(const string &name) {
-    if (_contains(name))
+    if (contains(name))
       return args[name];
     else
+      //      return nullopt;
       throw runerror{"Argument " + name + " does not exist!"};
   }
 
   auto &getArg(const char name) {
-    if (const auto arg_name = _contains(name))
+    if (const auto arg_name = contains(name))
       return args[*arg_name];
     else
-      throw runerror{"Symbol '" + string(1, name) + "' is not valid flag!"};
+      //      return nullopt;
+      throw runerror{"Symbol '" + string(1, name) + "' is not a valid flag!"};
   }
 
   auto &operator[](const string &name) { return args[name]; }
 
+  bool matchesHelp(const string &flag) { return flag == help_flag; }
+  bool matchesHelp(const char flag) { return flag == help_flag_alt; }
+
   void setValue(const string &name, const string &value = "") {
-    if (auto &arg = this->getArg(name);
-        std::holds_alternative<SwitchFlag>(arg) && value != "")
-      throw runerror{"Switch '" + name + "' cannot have value assigned to it!"};
-    else
-      std::visit([&value](auto &&arg) { return arg.setValue(value); },
-                 getArg(name));
+    std::visit([value](auto &&arg) { arg.setValue(value); }, getArg(name));
+  }
+
+  void setValue(const char name, const string &value = "") {
+    std::visit([value](auto &&arg) { arg.setValue(value); }, getArg(name));
   }
 
   void setValue(size_t position, const string &value = "") {
@@ -407,67 +453,94 @@ private:
   }
 
   void parseGroup(const string &flag) {
-    string last_arg = "";
-
-    for (size_t flag_pos = 0; flag_pos < flag.size(); ++flag_pos) {
-      if (const auto flag_name = _contains(flag[flag_pos])) {
-        if (auto &arg = args[*flag_name];
-            std::holds_alternative<SwitchFlag>(arg))
-          std::get<SwitchFlag>(arg).setValue();
-        else {
-          if (const auto value = flag.substr(flag_pos + 1); value.empty())
+    if (const auto number = StringFormat::str_to_int(flag))
+      numerical_arg = *number;
+    else {
+      for (size_t flag_pos = 0; flag_pos < flag.size(); ++flag_pos) {
+        if (const auto flag_symbol = flag[flag_pos]; matchesHelp(flag_symbol)) {
+          invoke_help = true;
+          return;
+        } else if (const auto flag_name = contains(flag_symbol)) {
+          if (auto &arg = args[*flag_name];
+              std::holds_alternative<SwitchFlag>(arg))
+            std::get<SwitchFlag>(arg).setValue();
+          else if (const auto value = flag.substr(flag_pos + 1); value.empty())
             throw runerror{"Missing value for " + *flag_name + " !"};
           else
             std::visit([&value](auto &&arg) { arg.setValue(value); }, arg);
-        }
-      } else if (const auto number = StringFormat::str_to_int(flag))
-        numerical_arg = *number;
-      else
-        throw runerror{"Could not recognize one of these flags: " + flag};
+        } else
+          throw runerror{"Could not recognize one of these flags: " + flag};
+      }
     }
   }
 
   void parseEqualSign(const string &arg) {
+
     auto [name, value] = StringDecompose::str_split_in_half(arg, '=');
+    cerr << name << " " << value << "\n";
     if (StringSearch::str_starts_with(name, "--"))
       this->setValue(name.substr(2), value);
     else {
       if (name.length() > 2)
         throw runerror{"Using assignment symbol '=' "
                        "with joined flags is forbidden! -> " +
-                       name};
-      this->setValue(name.substr(1), value);
+                       arg};
+      this->setValue(name.substr(1).front(), value);
     }
   }
 
   int parseSingleDash(const string &name, const string &value) {
+    //    cerr << name << " " << value << "\n";
     if (name.size() > 1) {
       parseGroup(name);
       return 0;
-    } else if (auto &arg = getArg(name.front());
-               std::holds_alternative<SwitchFlag>(arg)) {
-      std::get<SwitchFlag>(arg).setValue();
-      return 0;
-    } else if (value.empty() || value != "-" ||
-               StringSearch::str_starts_with(value, '-'))
-      throw runtime_error{"Missing value for argument " + name};
-    else {
-      std::visit([value](auto &&arg) { arg.setValue(value); }, arg);
-      return 1;
+    } else {
+      if (matchesHelp(name.front())) {
+        invoke_help = true;
+        return 0;
+      } else
+        return std::visit(
+            [value](auto &&arg) {
+              using T = std::decay_t<decltype(arg)>;
+              if constexpr (std::is_same_v<T, SwitchFlag>) {
+                arg.setValue();
+                return 0;
+              } else if (value.empty() ||
+                         (value != "-" &&
+                          StringSearch::str_starts_with(value, '-')))
+                throw runtime_error{"Missing value for argument " +
+                                    arg.getName()};
+              else {
+                arg.setValue(value);
+                return 1;
+              }
+            },
+            getArg(name.front()));
     }
   }
 
   int parseDoubleDash(const string &name, const string &value) {
-    if (auto &arg = getArg(name); std::holds_alternative<SwitchFlag>(arg)) {
-      std::get<SwitchFlag>(arg).setValue();
+    if (matchesHelp(name)) {
+      invoke_help = true;
       return 0;
-    } else if (value.empty() || value != "-" ||
-               StringSearch::str_starts_with(value, '-'))
-      throw runtime_error{"Missing value for argument " + name};
-    else {
-      std::visit([value](auto &&arg) { arg.setValue(value); }, arg);
-      return 1;
     }
+
+    return std::visit(
+        [value](auto &&arg) {
+          using T = std::decay_t<decltype(arg)>;
+          if constexpr (std::is_same_v<T, SwitchFlag>) {
+            arg.setValue();
+            return 0;
+          } else if (value.empty() ||
+                     (value != "-" &&
+                      StringSearch::str_starts_with(value, '-')))
+            throw runtime_error{"Missing value for argument " + arg.getName()};
+          else {
+            arg.setValue(value);
+            return 1;
+          }
+        },
+        getArg(name));
   }
 
   void parsePositional() {
@@ -488,6 +561,8 @@ private:
     for (const auto &[arg_name, arg] : args) {
       std::visit(
           [&check](auto &&arg) {
+            cerr << arg.getName() << "\n";
+            cerr << arg.getValue("__") << "\n";
             cerr << arg.repr() << "\n";
             if (arg.isObligatory() && !arg.isSet()) {
               check++;
@@ -565,6 +640,30 @@ public:
         getArg(name));
   }
 
+  void enableAppend(const string &name, const char sep) {
+    std::visit(
+        [sep](auto &&arg) {
+          using T = std::decay_t<decltype(arg)>;
+          if constexpr (std::is_same_v<T, RegularFlag>)
+            arg.enableAppend(sep);
+          else
+            throw runerror{"Cannot enable append for " + arg.repr()};
+        },
+        getArg(name));
+  }
+
+  void disableAppend(const string &name) {
+    std::visit(
+        [](auto &&arg) {
+          using T = std::decay_t<decltype(arg)>;
+          if constexpr (std::is_same_v<T, RegularFlag>)
+            arg.disableAppend();
+          else
+            throw runerror{"Cannot make " + arg.repr() + " appendable."};
+        },
+        getArg(name));
+  }
+
   void setHelp(const char flag) { help_flag_alt = flag; }
   void setHelp(const string &flag) { help_flag = flag; }
   void disableHelpShort() { setHelp(0); }
@@ -583,10 +682,10 @@ public:
   auto empty() const { args.empty(); }
 
   auto getArg(const string &name) const {
-    if (_contains(name))
+    if (contains(name))
       return args.at(name);
     else
-      throw runerror{"Argument " + name + " does not exist!"};
+      throw runerror{"Failed to recognise argument " + name};
   }
 
   auto isSet(const string &name) const {
@@ -607,12 +706,17 @@ public:
     return getValue(name, backup);
   }
 
-  auto getIterable(const string &name, char sep = 34) const {
-    return std::visit(
-        [&sep](auto &&arg) {
-          return StringDecompose::str_split(arg.getValue(""), sep, true);
-        },
-        getArg(name));
+  template <class T> struct always_false : std::false_type {};
+
+  vec_str getIterable(const string &name) const {
+    return std::visit([](auto &&arg) { return arg.getIterable(); },
+                      getArg(name));
+  }
+
+  int getNumerical() const noexcept { return *this->numerical_arg; }
+
+  const vec_str &getPositional() const noexcept {
+    return this->positional_args;
   }
 
   string str() const {
@@ -634,6 +738,8 @@ public:
 
       // If single --  is encountered remainging flags are
       // interpreted as positional arguments
+      if (invoke_help)
+        break;
       if (temp == "--") {
         for (++i; i < argc; ++i)
           positional_args.emplace_back(argv[i]);
@@ -649,9 +755,13 @@ public:
         positional_args.emplace_back(temp);
     }
 
-    this->parsePositional();
-
-    return this->verify();
+    if (invoke_help) {
+      cerr << getHelp() << "\n";
+      return 1;
+    } else {
+      this->parsePositional();
+      return this->verify();
+    }
   }
 
   string getHelp() const {
@@ -659,6 +769,8 @@ public:
 
     //    for (const auto &[name, arg] : args) {
     //    }
+
+    output << "Help!\n";
 
     return output.str();
   }
