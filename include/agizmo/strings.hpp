@@ -367,7 +367,7 @@ template <typename It> string str_join(It begin, It end, string sep = "\t") {
 }
 
 template <typename It> string str_join(It begin, It end, char sep) {
-  str_join(begin, end, sep);
+  return str_join(begin, end, string(1, sep));
 }
 
 template <typename Container>
@@ -377,7 +377,7 @@ string str_join(const Container &container, string sep = "\t") {
 
 template <typename Container>
 string str_join(const Container &container, char sep) {
-  return str_join(container.begin(), container.end(), sep);
+  return str_join(container.begin(), container.end(), string(1, sep));
 }
 
 template <class InputIt>
