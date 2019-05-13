@@ -25,7 +25,7 @@ target_include_directories(BasicTest
         ${CMAKE_CURRENT_SOURCE_DIR}/test/include
 )
 target_compile_features(BasicTest PRIVATE cxx_std_17)
-target_compile_options(BasicTest PRIVATE -g -march=x86-64 -mtune=native -O3 -g0
+target_compile_options(BasicTest PRIVATE -g -march=generic -mtune=generic -O3 -g0
 				       -pipe -fPIE -fPIC -fstack-protector-strong -fno-plt
 				       -fvisibility=hidden -Werror -Wall -pthread)
 
@@ -43,8 +43,8 @@ target_include_directories(pyAGizmo
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-target_compile_options(pyAGizmo PRIVATE -march=x86-64 -mtune=native -O3 -g0
-				       -pipe -fPIE -fPIC -fstack-protector-strong -fno-plt
+target_compile_options(pyAGizmo PRIVATE -march=generic -mtune=generic -O3 -g0
+                       -pipe -fPIE -fPIC -fstack-protector-strong -fno-plt
                        -fvisibility=hidden -Werror -Wall -pthread)
 target_compile_features(pyAGizmo PRIVATE cxx_std_17)
 
