@@ -876,7 +876,7 @@ public:
     return getValue(name, backup);
   }
 
-  template <class T> struct always_false : std::false_type {};
+  //  template <class T> struct always_false : std::false_type {};
 
   vec_str getIterable(const string &name) const {
     return std::visit([](auto &&arg) { return arg.getIterable(); },
@@ -954,9 +954,11 @@ public:
   string getInfo() const noexcept {
     sstream output;
     output << getVersion() << "\n"
-           << (hasDescription() ? getDescription() + "\n" : "") << "\n";
+           << (hasDescription() ? getDescription() + "\n" : "");
     return output.str();
   }
+
+  template <class T> struct always_false : std::false_type {};
 
   string getHelp() const {
     sstream output;
@@ -972,11 +974,36 @@ public:
       sstream stream_multi;
       sstream stream_switch;
 
-      for (const auto &[arg_name, arg] : args)
-        output << std::visit([](auto &&arg) { return arg.help(); }, arg)
-               << "\n";
+      for (const auto &[arg_name, arg] : args) {
+        std::visit(
+            [&stream_pos, &stream_reg, &stream_multi,
+             &stream_switch](auto &&arg) {
+              using T = std::decay_t<decltype(arg)>;
+              if constexpr (std::is_same_v<T, PositionalFlag>)
+                stream_pos << "  " << arg.help() << "\n";
+              else if constexpr (std::is_same_v<T, RegularFlag>)
+                stream_reg << "  " << arg.help() << "\n";
+              else if constexpr (std::is_same_v<T, MultiFlag>)
+                stream_multi << "  " << arg.help() << "\n";
+              else if constexpr (std::is_same_v<T, SwitchFlag>)
+                stream_switch << "  " << arg.help() << "\n";
+              else
+                static_assert(always_false<T>::value,
+                              "non-exhaustive visitor!");
+            },
+            arg);
+      }
 
-      //      output << stream_pos.rdbuf() << "\n";
+      if (!stream_pos.str().empty())
+        // output << "\n\n-- Positional arguments\n" << stream_pos.rdbuf() <<
+        // "\n";
+        output << "Positional arguments:\n" << stream_pos.str() << "\n";
+      if (!stream_reg.str().empty())
+        output << "Regular arguments:\n" << stream_reg.str() << "\n";
+      if (!stream_multi.str().empty())
+        output << "Multi arguments:\n" << stream_multi.str() << "\n";
+      if (!stream_switch.str().empty())
+        output << "Switch arguments:\n" << stream_switch.str() << "\n";
     }
 
     return output.str();
