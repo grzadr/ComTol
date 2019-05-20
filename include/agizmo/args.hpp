@@ -974,7 +974,7 @@ public:
       sstream stream_multi;
       sstream stream_switch;
 
-      for (const auto &[arg_name, arg] : args) {
+      for ( [[maybe_unused]] const auto &[ arg_name, arg] : args) {
         std::visit(
             [&stream_pos, &stream_reg, &stream_multi,
              &stream_switch](auto &&arg) {
