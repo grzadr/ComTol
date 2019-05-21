@@ -725,8 +725,9 @@ private:
 
     cerr << describe() << "\n";
 
-    for (const auto &[arg_name, arg] : args)
-      std::visit([&check](auto &&arg) { check += !arg.check(); }, arg);
+    for (const auto& element : args)
+      std::visit([&check](auto &&arg) { check += !arg.check(); },
+                 element.second);
 
     if (check)
       cerr << std::to_string(check) + " arguments failed verification!";
@@ -974,7 +975,7 @@ public:
       sstream stream_multi;
       sstream stream_switch;
 
-      for ( [[maybe_unused]] const auto &[ arg_name, arg] : args) {
+      for (const auto& element : args) {
         std::visit(
             [&stream_pos, &stream_reg, &stream_multi,
              &stream_switch](auto &&arg) {
@@ -991,7 +992,7 @@ public:
                 static_assert(always_false<T>::value,
                               "non-exhaustive visitor!");
             },
-            arg);
+            element.second);
       }
 
       if (!stream_pos.str().empty())
@@ -1013,8 +1014,9 @@ public:
     sstream output;
 
     output << getVersion() << "Flags:\n";
-    for (const auto &[arg_name, arg] : args)
-      output << std::visit([](auto &&arg) { return arg.describe(); }, arg)
+    for (const auto& element : args)
+      output << std::visit([](auto &&arg) { return arg.describe(); },
+                           element.second)
              << "\n";
 
     return output.str();
