@@ -725,7 +725,7 @@ private:
 
     cerr << describe() << "\n";
 
-    for (const auto& element : args)
+    for (const auto &element : args)
       std::visit([&check](auto &&arg) { check += !arg.check(); },
                  element.second);
 
@@ -849,8 +849,8 @@ public:
   auto end() const { return this->args.end(); }
   auto cend() const { return this->args.cend(); }
 
-  auto size() const { args.size(); }
-  auto empty() const { args.empty(); }
+  [[nodiscard]] auto size() const { return args.size(); }
+  [[nodiscard]] auto empty() const { return args.empty(); }
 
   auto getArg(const string &name) const {
     if (contains(name))
@@ -975,7 +975,7 @@ public:
       sstream stream_multi;
       sstream stream_switch;
 
-      for (const auto& element : args) {
+      for (const auto &element : args) {
         std::visit(
             [&stream_pos, &stream_reg, &stream_multi,
              &stream_switch](auto &&arg) {
@@ -1014,7 +1014,7 @@ public:
     sstream output;
 
     output << getVersion() << "Flags:\n";
-    for (const auto& element : args)
+    for (const auto &element : args)
       output << std::visit([](auto &&arg) { return arg.describe(); },
                            element.second)
              << "\n";

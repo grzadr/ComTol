@@ -84,77 +84,77 @@ public:
     return stream << reader.str();
   }
 
-  bool readLine(const string &skip = {}) {
-    if (skip.empty()) {
-      getline(*input, line);
-      ++line_num;
-    } else {
-      while (getline(*input, line) && line.find_first_of(skip) == 0) {
-        ++line_num;
-        continue;
-      }
-      ++line_num;
-    }
+  //  bool readLine(const string &skip = {}) {
+  //    if (skip.empty()) {
+  //      getline(*input, line);
+  //      ++line_num;
+  //    } else {
+  //      while (getline(*input, line) && line.find_first_of(skip) == 0) {
+  //        ++line_num;
+  //        continue;
+  //      }
+  //      ++line_num;
+  //    }
 
-    return good();
-  }
+  //    return good();
+  //  }
 
-  bool readLine(const int skip) {
-    if (!skip)
-      readLine();
-    else {
-      for (int i = 0; i < skip; ++i) {
-        getline(*input, line);
-        if (!input)
-          break;
-      }
-      line_num += skip;
-    }
+  //  bool readLine(const int skip) {
+  //    if (!skip)
+  //      readLine();
+  //    else {
+  //      for (int i = 0; i < skip; ++i) {
+  //        getline(*input, line);
+  //        if (!input)
+  //          break;
+  //      }
+  //      line_num += skip;
+  //    }
 
-    return good();
-  }
+  //    return good();
+  //  }
 
-  bool readLineInto(string &external, const string &skip = {}) {
-    if (skip.empty())
-      getline(*input, external);
-    else
-      while (getline(*input, external) && external.find_first_of(skip) == 0)
-        continue;
-    return good();
-  }
+  //  bool readLineInto(string &external, const string &skip = {}) {
+  //    if (skip.empty())
+  //      getline(*input, external);
+  //    else
+  //      while (getline(*input, external) && external.find_first_of(skip) == 0)
+  //        continue;
+  //    return good();
+  //  }
 
-  bool readLineInto(string &external, int skip) {
-    for (int i = 0; i < skip; ++i) {
-      getline(*input, external);
-      if (!input)
-        break;
-    }
-    return good();
-  }
+  //  bool readLineInto(string &external, int skip) {
+  //    for (int i = 0; i < skip; ++i) {
+  //      getline(*input, external);
+  //      if (!input)
+  //        break;
+  //    }
+  //    return good();
+  //  }
 
-  opt_str operator()(const string &skip = {}) {
-    if (readLine(skip))
-      return line;
-    else
-      return nullopt;
-  }
+  //  opt_str operator()(const string &skip = {}) {
+  //    if (readLine(skip))
+  //      return line;
+  //    else
+  //      return nullopt;
+  //  }
 
-  opt_str operator()(const int skip) {
-    if (readLine(skip))
-      return line;
-    else
-      return nullopt;
-  }
+  //  opt_str operator()(const int skip) {
+  //    if (readLine(skip))
+  //      return line;
+  //    else
+  //      return nullopt;
+  //  }
 
-  bool setLineToMatch(const string &match) {
-    do {
-      getline(*input, line);
-      if (line == match)
-        return true;
-    } while (good());
+  //  bool setLineToMatch(const string &match) {
+  //    do {
+  //      getline(*input, line);
+  //      if (line == match)
+  //        return true;
+  //    } while (good());
 
-    return false;
-  }
+  //    return false;
+  //  }
 };
 
 class FileReader {
