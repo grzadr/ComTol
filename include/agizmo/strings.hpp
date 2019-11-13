@@ -14,7 +14,7 @@
 
 #include "basic.hpp"
 
-#include <experimental/iterator>
+//#include <experimental/iterator>
 
 namespace AGizmo {
 
@@ -352,16 +352,17 @@ inline string str_remove_suffix(const string &source, const char suffix) {
 namespace StringCompose {
 
 //#include <experimental/iterator>
-using std::experimental::ostream_joiner;
+// using std::experimental::ostream_joiner;
 
 template <typename It> string str_join(It begin, It end, string sep = "\t") {
   if (begin == end)
     return "";
 
   sstream output;
-  //  for_each(next(begin), end,
-  //           [&output, sep](auto &ele) { output << sep << ele; });
-  copy(begin, end, ostream_joiner(output, sep));
+  output << *begin;
+  for_each(next(begin), end,
+           [&output, sep](const auto &ele) { output << sep << ele; });
+  //  copy(begin, end, ostream_joiner(output, sep));
 
   return output.str();
 }
@@ -378,6 +379,33 @@ string str_join(const Container &container, string sep = "\t") {
 template <typename Container>
 string str_join(const Container &container, char sep) {
   return str_join(container.begin(), container.end(), string(1, sep));
+}
+
+template <typename It>
+string str_join_quoted(It begin, It end, string sep = "\t") {
+  if (begin == end)
+    return "";
+
+  sstream output;
+  output << quoted(*begin);
+  for_each(next(begin), end,
+           [&output, sep](const auto &ele) { output << sep << quoted(ele); });
+
+  return output.str();
+}
+
+template <typename It> string str_join_quoted(It begin, It end, char sep) {
+  return str_join_quoted(begin, end, string(1, sep));
+}
+
+template <typename Container>
+string str_join_quoted(const Container &container, string sep = "\t") {
+  return str_join_quoted(container.begin(), container.end(), sep);
+}
+
+template <typename Container>
+string str_join_quoted(const Container &container, char sep) {
+  return str_join_quoted(container.begin(), container.end(), string(1, sep));
 }
 
 template <class InputIt>
