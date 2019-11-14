@@ -41,13 +41,14 @@ inline auto contains(const string &source, const char query, size_t pos = 0) {
   return source.find(query, pos) != string::npos;
 }
 
-inline auto count_all(const string &source, char query, size_t pos = 0) {
+inline int count_all(const string &source, char query, size_t pos = 0) {
   auto first =
       next(begin(source), (pos == string::npos) ? 0 : static_cast<long>(pos));
   auto last = end(source);
-  if (first > last)
-    return 0l;
-  return std::count(first, last, query);
+  if (first <= last)
+    return std::count(first, last, query);
+  else
+    return 0;
 }
 
 inline auto str_starts_with(const string &source, const string &query) {
@@ -647,9 +648,5 @@ inline string str_extract_before(const string &source,
 
 } // namespace StringDecompose
 
-//// Converts string containing fields separated with char fields and
-//// their values seperated by char values into map. If some field has no value,
-//// nullopt is inserted.
-//// Example: "K1=V1;K2;K3=" -> {{"K1", "V1"}, {"K2", nullopt}, "
-
 } // namespace AGizmo
+
