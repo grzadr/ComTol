@@ -37,13 +37,27 @@ inline OutIt constexpr split(InIt query, const InIt &query_end, Sep sep,
                              OutIt output) {
   auto found(find(query, query_end, sep));
 
-  do {
-    *output++ = OutType(query, found);
-    query = next(found);
-    found = find(query, query_end, sep);
-  } while (prev(query) != query_end);
+  *output++ = OutType(query, found);
 
-  return output;
+  if (found == query_end)
+    return output;
+  else {
+    do {
+      query = next(found);
+      found = find(query, query_end, sep);
+      *output++ = OutType(query, found);
+    } while (found != query_end);
+    return output;
+  }
+
+  //do {
+  //  *output++ = OutType(query, found);
+  //  query = next(found);
+  //  found = find(query, query_end, sep);
+  //  std::cerr << *prev(query) << "\n";
+  //} while (prev(query) != query_end);
+
+  //return output;
 }
 
 template <typename OutType, template <class> class Comp, typename InIt,
@@ -137,3 +151,4 @@ OutIt constexpr mapify(KeytIt kbegin, KeytIt kend, ValueIt vbegin, ValueIt vend,
 
 } // namespace Basic
 } // namespace AGizmo
+
