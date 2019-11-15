@@ -410,7 +410,7 @@ class SwitchFlag {
 private:
   inline const static string kind = "Switch";
   FlagInfo info;
-  bool value;
+  bool value{false};
 
 public:
   SwitchFlag() = default;
@@ -649,10 +649,10 @@ private:
                 return 0;
               } else if (value.empty() ||
                          (value != "-" &&
-                          StringSearch::str_starts_with(value, '-')))
+                          StringSearch::str_starts_with(value, '-'))) {
                 throw runtime_error{"Missing value for argument " +
                                     arg.getName()};
-              else {
+              } else {
                 arg.setValue(value);
                 return 1;
               }
@@ -681,9 +681,9 @@ private:
             return 0;
           } else if (value.empty() ||
                      (value != "-" &&
-                      StringSearch::str_starts_with(value, '-')))
+                      StringSearch::str_starts_with(value, '-'))) {
             throw runtime_error{"Missing value for argument " + arg.getName()};
-          else {
+          } else {
             arg.setValue(value);
             return 1;
           }
@@ -1024,3 +1024,4 @@ public:
 }; // namespace AGizmo::Args
 
 } // namespace AGizmo::Args
+

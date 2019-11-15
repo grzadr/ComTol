@@ -41,14 +41,14 @@ inline auto contains(const string &source, const char query, size_t pos = 0) {
   return source.find(query, pos) != string::npos;
 }
 
-inline int count_all(const string &source, char query, size_t pos = 0) {
-  auto first =
-      next(begin(source), (pos == string::npos) ? 0 : static_cast<long>(pos));
+inline auto count_all(const string &source, char query, size_t pos = 0) {
+  auto first = next(begin(source), (pos == string::npos) ? 0 : pos);
   auto last = end(source);
+
   if (first <= last)
     return std::count(first, last, query);
   else
-    return 0;
+    return 0ll;
 }
 
 inline auto str_starts_with(const string &source, const string &query) {
@@ -84,7 +84,7 @@ inline bool only_digits(const string &query) noexcept {
 // Function checks if given strings is a valid number and converts it to
 // integer. If it is not a valid number function returns nullopt.
 inline opt_int str_to_int(const string &query, bool negative = false) {
-  if (negative && query.find('-') == 0 && only_digits(query.substr(1)))
+  if (negative && query.front() == '-' && only_digits(query.substr(1)))
     return std::stoi(query);
   else if (only_digits(query))
     return std::stoi(query);

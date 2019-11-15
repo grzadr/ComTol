@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <ctime>
+#include <string>
 
 namespace AGizmo::Logging {
 
@@ -13,7 +14,7 @@ using steady_duration = std::chrono::duration<double>;
 using sstream = std::stringstream;
 using std::ostream;
 
-inline string system_now() {
+inline std::string system_now() {
 	sstream output;
 	std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	output << "[" << std::put_time(std::localtime(&time), "%F %a %T") << "] ";
@@ -90,3 +91,4 @@ private:
 };
 
 } // namespace AGizmo::Logging
+
