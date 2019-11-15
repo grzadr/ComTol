@@ -41,14 +41,14 @@ inline auto contains(const string &source, const char query, size_t pos = 0) {
   return source.find(query, pos) != string::npos;
 }
 
-inline auto count_all(const string &source, char query, size_t pos = 0) {
+inline long count_all(const string &source, char query, size_t pos = 0) {
   auto first = next(begin(source), (pos == string::npos) ? 0 : pos);
   auto last = end(source);
 
   if (first <= last)
     return std::count(first, last, query);
   else
-    return 0ll;
+    return 0;
 }
 
 inline auto str_starts_with(const string &source, const string &query) {
@@ -649,4 +649,3 @@ inline string str_extract_before(const string &source,
 } // namespace StringDecompose
 
 } // namespace AGizmo
-
