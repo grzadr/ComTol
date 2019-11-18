@@ -626,8 +626,7 @@ inline str_pair str_split_in_half(const string &source, char mark) noexcept {
   if (source.empty())
     return {"", ""};
 
-  if (auto pos = source.find(mark);
-      pos == string::npos || pos == source.size() - 1)
+  if (auto pos = source.find(mark); pos >= source.size() - 1)
     return {source, ""};
   else if (pos == 0)
     return {"", source};
@@ -649,3 +648,4 @@ inline string str_extract_before(const string &source,
 } // namespace StringDecompose
 
 } // namespace AGizmo
+
