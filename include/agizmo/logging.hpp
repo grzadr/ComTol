@@ -1,10 +1,10 @@
 #pragma once
 
 #include <chrono>
-#include <iomanip>
-#include <sstream>
-#include <iostream>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 #include <string>
 
 namespace AGizmo::Logging {
@@ -15,10 +15,11 @@ using sstream = std::stringstream;
 using std::ostream;
 
 inline std::string system_now() {
-	sstream output;
-	std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	output << "[" << std::put_time(std::localtime(&time), "%F %a %T") << "] ";
-	return output.str();
+  sstream output;
+  std::time_t time =
+      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  output << "[" << std::put_time(std::localtime(&time), "%F %a %T") << "] ";
+  return output.str();
 }
 
 class Timer {
