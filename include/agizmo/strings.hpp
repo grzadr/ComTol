@@ -10,6 +10,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <tuple>
 
 #include "basic.hpp"
@@ -79,6 +80,14 @@ inline bool only_digits(const string &query) noexcept {
   return (!query.empty() &&
           find_if_not(begin(query), end(query),
                       [](const char &c) { return isdigit(c); }) == end(query));
+}
+
+inline bool is_integer(const string &query) noexcept {
+  if (query.front() == '-') {
+    return only_digits(query.substr(1));
+  } else {
+    return only_digits(query);
+  }
 }
 
 // Function checks if given strings is a valid number and converts it to
@@ -648,4 +657,3 @@ inline string str_extract_before(const string &source,
 } // namespace StringDecompose
 
 } // namespace AGizmo
-
